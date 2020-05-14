@@ -2,12 +2,6 @@
 
 A hierarchy management tool for hierarchy data stored in table format
 
-![alt text](https://i.imgur.com/kWMCC0E.jpg)
-
-##
-
-![alt text](https://i.imgur.com/jm17Qbc.jpg)
-
 ## Features
 
  - Manage by editing the sheet or right clicking in the treeview
@@ -26,5 +20,11 @@ A hierarchy management tool for hierarchy data stored in table format
  - Save program data and sheet as xlsx, json
  - Runs smoothly even with thousands of rows/IDs
  - Potential to run as an automated API to output flattened versions of hierarchies
+
+![alt text](https://i.imgur.com/kWMCC0E.jpg)
+
+##
+
+![alt text](https://i.imgur.com/jm17Qbc.jpg)
 
 ##

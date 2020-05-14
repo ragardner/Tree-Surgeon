@@ -2,7 +2,11 @@
 
 A hierarchy management tool for hierarchy data stored in table format
 
-![alt text](https://i.imgur.com/xqQH90S.jpg)
+![alt text](https://i.imgur.com/kWMCC0E.jpg)
+
+##
+
+![alt text](https://i.imgur.com/jm17Qbc.jpg)
 
 ## Features
 

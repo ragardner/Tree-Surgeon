@@ -23,8 +23,8 @@ A hierarchy management tool for hierarchy data stored in table format
 
 ![alt text](https://i.imgur.com/kWMCC0E.jpg)
 
-##
+___
 
 ![alt text](https://i.imgur.com/jm17Qbc.jpg)
 
-##
+___

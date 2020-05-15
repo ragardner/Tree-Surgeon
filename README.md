@@ -1,7 +1,5 @@
 # Tree-Surgeon ![python](https://img.shields.io/badge/windows-10-blue) ![python](https://img.shields.io/badge/python-3.6+-blue) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/ragardner/Tree-Surgeon) [![GitHub Release Date](https://img.shields.io/github/release-date-pre/ragardner/Tree-Surgeon.svg)](https://github.com/ragardner/Tree-Surgeon/releases) ![GitHub All Releases](https://img.shields.io/github/downloads/ragardner/Tree-Surgeon/total)
 
-A hierarchy/master data management and design tool
-
 ## Features
 
  - Manage by editing the sheet or right clicking in the treeview

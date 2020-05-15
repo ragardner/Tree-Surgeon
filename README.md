@@ -5,13 +5,11 @@ A hierarchy management tool for hierarchy data stored in table format
 ## Features
 
  - Manage by editing the sheet or right clicking in the treeview
- - Manage an unlimited number of hierarchies in the same sheet
- - Manage hierarchies and Text, Numerical or Date columns easily
+ - Create/delete/move an unlimited numbers of hierarchies and detail columns
  - Cut/Copy and Paste IDs between hierarchies, delete and rename also
  - Keep/export changelog table with information such as username, date, old value
  - Sort rows in tree walk order or by column, ascending or descending
- - Compare hierarchies
- - Merge two sheets/hierarchies with options
+ - Compare sheets or Merge sheets with options
  - Flatten a hierarchy and export
  - Formulas and conditional formatting
  - User entry validation for text, numbers and dates

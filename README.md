@@ -9,7 +9,7 @@ A hierarchy management tool for hierarchy data stored in table format
  - Cut/Copy and Paste IDs between hierarchies, delete and rename also
  - Keep/export changelog table with information such as username, date, old value
  - Sort rows in tree walk order or by column, ascending or descending
- - Compare sheets or Merge sheets with options
+ - Compare and Merge sheets
  - Flatten a hierarchy and export
  - Formulas and conditional formatting
  - User entry validation for text, numbers and dates

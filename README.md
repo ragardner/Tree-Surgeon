@@ -4,7 +4,7 @@
 ## Features
 
  - Manage by editing the sheet or right clicking in the treeview
- - Create/delete/move an unlimited numbers of hierarchies and detail columns
+ - Create/delete/move an unlimited number of columns
  - Cut/Copy and Paste IDs between hierarchies, delete and rename also
  - Save/export changelog table with information such as username, date, old value
  - Sort rows in tree walk order or by column, ascending or descending

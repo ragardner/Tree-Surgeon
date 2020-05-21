@@ -3866,21 +3866,13 @@ class license_key_entry_popup(tk.Toplevel):
         self.withdraw()
         self.resizable(False, False)
         self.tk.call("wm","iconphoto",self._w,tk.PhotoImage(format="gif",data=top_left_icon))
-        self.title("Enter license key - Click the X button or press escape to close")
+        self.title(f"Enter license key - Contact {contact_email} for more information")
         self.C = C
         self.wm_transient(self.C)
         self.focus_force()
         self.grab_set()
         self.grid_columnconfigure(1,weight=1)
         self.grid_rowconfigure(2,weight=1)
-        
-        self.label = label(self, text = "Username/Organisation:", font = EF, theme = theme)
-        self.label.config(anchor = "e")
-        self.label.grid(row=0,column=0,sticky="nswe",pady=(0,17),padx=(20,10))
-
-        self.display = entry_with_scrollbar(self, theme = theme)
-        self.display.set_my_value("")
-        self.display.grid(row=0,column=1,sticky="nswe",pady=(20,20),padx=(0,20))
 
         self.label2 = label(self, text = "License key:", font = EF, theme = theme)
         self.label2.config(anchor = "e")
@@ -3888,7 +3880,7 @@ class license_key_entry_popup(tk.Toplevel):
         
         self.display2 = entry_with_scrollbar(self, theme = theme)
         self.display2.set_my_value("")
-        self.display2.grid(row=1,column=1,sticky="nswe",pady=(10,20),padx=(0,20))
+        self.display2.grid(row=1,column=1,sticky="nswe",pady=(18,20),padx=(0,20))
 
         self.bf = frame(self, theme = theme)
         self.bf.grid_columnconfigure(0, weight = 1, uniform = "x")
@@ -3904,18 +3896,16 @@ class license_key_entry_popup(tk.Toplevel):
                                 padx = 60,
                                 pady = 20)
         self.bind("<Return>",self.confirm)
-        self.display.bind("<Return>", self.display2.place_cursor)
         self.display2.bind("<Return>", self.confirm)
         self.bind("<Escape>",self.cancel)
         self.result = False
-        self.display.place_cursor()
-        center(self,670,215)
+        self.display2.place_cursor()
+        center(self,670,141)
         self.deiconify()
         self.wait_window()
         
     def confirm(self,event=None):
         cset = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-        self.username = "".join([c for c in self.display.get_my_value() if c.upper() in cset])
         self.license_key = "".join([c for c in "".join(self.display2.get_my_value().upper().split("-")) if c in cset])
         self.result = True
         self.destroy()

@@ -1,7 +1,7 @@
 ____
 
 Please read the following End User License Agreement (EULA), terms and
-conditions carefully (scroll down to fully read the agreement):
+conditions carefully:
 
 By using this software you agree to and accept this EULA and the following
 terms and conditions.

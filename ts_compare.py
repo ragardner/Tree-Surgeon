@@ -108,7 +108,6 @@ class treecompare(tk.Frame):
         self.run_compare_button.config(width = 40)
         self.run_compare_button.grid(row=3,column=1,padx=10,pady=20, sticky = "e")
         
-        
         self.sheetdisplay1 = Sheet(self.l_frame,
                                    theme = self.C.theme,
                                    header_font = ("Calibri", 13, "normal"),

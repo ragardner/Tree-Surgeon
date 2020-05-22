@@ -1,6 +1,5 @@
 #Copyright © 2020 R. A. Gardner
 
-#from ts_classes_c import *
 from ts_extra_vars_and_funcs import *
 from ts_widgets import *
 

@@ -8,11 +8,13 @@ from openpyxl.styles import PatternFill
 from openpyxl.styles import Alignment
 from fastnumbers import isint, isintlike, isfloat, isreal
 
-from ts_extra_vars_and_funcs import *
-from ts_classes import *
-from ts_classes_c import *
-from ts_sheet_selection import *
 from ts_column_selection import *
+from ts_compare import *
+from ts_extra_vars_and_funcs import *
+from ts_sheet_selection import *
+from ts_toplevels import *
+from ts_widgets import *
+from ts_classes_d import *
 
 import tkinter as tk
 from tkinter import ttk, filedialog
@@ -36,7 +38,7 @@ import csv as csv_module
 from warnings import simplefilter as ignorew_
 
 try:
-    from ts_c import *
+    from ts_d import *
     try:
         run_app(argv)
     except Exception as e:

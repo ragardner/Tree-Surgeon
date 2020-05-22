@@ -5526,16 +5526,6 @@ class ss_settings_chooser(tk.Toplevel):
         elif x == "center":
             self.dd_4.set_my_value("Center")
         self.dd_4.grid(row=2,column=1,sticky="nswe")
-
-        self.dd_5_label = label(self.settings_frame,"Theme: ",BF, theme = theme)
-        self.dd_5_label.grid(row=3,column=0,sticky="nswe")
-        self.dd_5 = ez_dropdown(self.settings_frame,EF)
-        self.dd_5['values'] = ("Light","Dark")
-        if self.C.sheetdisplay.MT.table_background == "white":
-            self.dd_5.set_my_value("Light")
-        else:
-            self.dd_5.set_my_value("Dark")
-        self.dd_5.grid(row=3,column=1,sticky="nswe")
         
         self.confirm_button = button(self,text="Confirm",
                                      style="EF.Std.TButton",
@@ -5546,7 +5536,7 @@ class ss_settings_chooser(tk.Toplevel):
                                     command=self.cancel)
         self.cancel_button.grid(row=1,column=1,sticky="nswe",padx=20,pady=(15,20))
         self.bind("<Escape>",self.cancel)
-        center(self,500,185)
+        center(self,500,175)
         self.deiconify()
         self.wait_window()
         
@@ -5568,8 +5558,8 @@ class ss_settings_chooser(tk.Toplevel):
             self.C.sheetdisplay.header_align("w",redraw=False)
         elif x == "Center":
             self.C.sheetdisplay.header_align("center",redraw=False)
-        self.C.change_theme(self.dd_5.displayed.get().lower())
         self.changed = True
+        self.C.sheetdisplay.refresh()
         self.destroy()
         
     def cancel(self,event=None):

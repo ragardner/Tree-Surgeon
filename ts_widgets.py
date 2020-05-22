@@ -34,7 +34,7 @@ class id_and_parent_column_selector(tk.Frame):
                  headers=[[]],
                  show_disp_1=True,
                  show_disp_2=True,
-                 theme = "light",
+                 theme = "dark blue",
                  expand = False):
         tk.Frame.__init__(self,parent,background=theme_bg(theme))
         self.grid_propagate(False)
@@ -216,7 +216,7 @@ class id_and_parent_column_selector(tk.Frame):
     def get_par_cols(self):
         return tuple(sorted(self.par_cols))
 
-    def change_theme(self, theme = "dark"):
+    def change_theme(self, theme = "dark blue"):
         self.id_col_selection.change_theme(theme)
         self.par_col_selection.change_theme(theme)
         self.id_col_selection.set_options(selected_cells_background="#0078d7",
@@ -251,7 +251,7 @@ class flattened_base_ids_choices(tk.Frame):
     def __init__(self,
                  parent,
                  command,
-                 theme = "dark"):
+                 theme = "dark blue"):
         tk.Frame.__init__(self,parent,background = theme_bg(theme))
         self.C = parent
         self.extra_func = command
@@ -291,7 +291,7 @@ class flattened_base_ids_choices(tk.Frame):
     def get_choices(self):
         return self.only_base_ids_button.get_checked(), self.order_dropdown.get_my_value(), True
 
-    def change_theme(self, theme = "dark"):
+    def change_theme(self, theme = "dark blue"):
         self.config(bg = theme_bg(theme))
 
 
@@ -299,7 +299,7 @@ class flattened_column_selector(tk.Frame):
     def __init__(self,
                  parent,
                  headers=[[]],
-                 theme = "dark"):
+                 theme = "dark blue"):
         tk.Frame.__init__(self, parent, bg = theme_bg(theme))
         self.grid_propagate(False)
         self.grid_rowconfigure(1,weight=1)
@@ -318,12 +318,12 @@ class flattened_column_selector(tk.Frame):
                                        show_selected_cells_border = False,
                                               header_align="center",
                                               row_index_align="center",
-                                              selected_cells_background="#ffa51e",
-                                              header_select_background="#ffa51e",
-                                              row_index_select_background="#ffa51e",
-                                             header_select_foreground="black",
-                                             row_index_select_foreground="black",
-                                             selected_cells_foreground="black",
+                                              selected_cells_background="#8cba66",
+                                              header_select_background="#8cba66",
+                                              row_index_select_background="#8cba66",
+                                             header_select_foreground="white",
+                                             row_index_select_foreground="white",
+                                             selected_cells_foreground="white",
                                               header_font = ("Calibri", 13, "normal"),
                                               column_width=350,
                                               row_index_width=60,
@@ -394,15 +394,15 @@ class flattened_column_selector(tk.Frame):
     def get_par_cols(self):
         return tuple(sorted(self.par_cols))
 
-    def change_theme(self, theme = "dark"):
+    def change_theme(self, theme = "dark blue"):
         self.config(bg = theme_bg(theme))
         self.par_col_selection.change_theme(theme)
-        self.par_col_selection.set_options(selected_cells_background="#ffa51e",
-                                              header_select_background="#ffa51e",
-                                              row_index_select_background="#ffa51e",
-                                             header_select_foreground="black",
-                                             row_index_select_foreground="black",
-                                             selected_cells_foreground="black")
+        self.par_col_selection.set_options(selected_cells_background="#8cba66",
+                                              header_select_background="#8cba66",
+                                              row_index_select_background="#8cba66",
+                                             header_select_foreground="white",
+                                             row_index_select_foreground="white",
+                                             selected_cells_foreground="white")
         self.par_col_display.my_entry.config(background = theme_entry_bg(theme),
                                   foreground = theme_entry_fg(theme),
                                   disabledbackground = theme_entry_dbg(theme),
@@ -418,7 +418,7 @@ class single_column_selector(tk.Frame):
                  headers=[[]],
                  width=250,
                  height=350,
-                 theme = "dark"):
+                 theme = "dark blue"):
         tk.Frame.__init__(self,parent,width=width,height=height, bg = theme_bg(theme))
         self.grid_propagate(False)
         self.grid_rowconfigure(1,weight=1)
@@ -435,12 +435,12 @@ class single_column_selector(tk.Frame):
                                          align="center",
                                           header_align="center",
                                           row_index_align="center",
-                                          selected_cells_background="#ffa51e",
-                                          header_select_background="#ffa51e",
-                                          row_index_select_background="#ffa51e",
-                                         header_select_foreground="black",
-                                         row_index_select_foreground="black",
-                                         selected_cells_foreground="black",
+                                          selected_cells_background="#8cba66",
+                                          header_select_background="#8cba66",
+                                          row_index_select_background="#8cba66",
+                                         header_select_foreground="white",
+                                         row_index_select_foreground="white",
+                                         selected_cells_foreground="white",
                                           header_font = ("Calibri", 13, "normal"),
                                           column_width=180,
                                           row_index_width=50,
@@ -554,7 +554,7 @@ class auto_add_condition_num_frame(tk.Frame):
                  parent,
                  col_sel,
                  sheet,
-                 theme = "dark"):
+                 theme = "dark blue"):
         tk.Frame.__init__(self, parent, height = 200, bg = theme_bg(theme))
         self.grid_propagate(False)
         self.C = parent
@@ -625,7 +625,7 @@ class auto_add_condition_date_frame(tk.Frame):
                  col_sel,
                  sheet,
                  DATE_FORM,
-                 theme = "dark"):
+                 theme = "dark blue"):
         tk.Frame.__init__(self, parent, height = 225, bg = theme_bg(theme))
         self.grid_propagate(False)
         self.C = parent
@@ -722,7 +722,7 @@ class edit_condition_frame(tk.Frame):
                  color=None,
                  coltype="Text Detail",
                  confirm_text="Save condition",
-                 theme = "dark"):
+                 theme = "dark blue"):
         tk.Frame.__init__(self,parent, height = 160, bg = theme_bg(theme))
         self.grid_propagate(False)
         self.C = parent
@@ -777,7 +777,7 @@ class edit_condition_frame(tk.Frame):
 
 
 class edit_formula_frame(tk.Frame):
-    def __init__(self,parent,colname,formula,type_,formula_apply_only,theme = "dark"):
+    def __init__(self,parent,colname,formula,type_,formula_apply_only,theme = "dark blue"):
         tk.Frame.__init__(self,parent,height=215, bg = theme_bg(theme))
         self.grid_propagate(False)
         self.C = parent
@@ -823,7 +823,7 @@ class edit_formula_frame(tk.Frame):
 
 
 class edit_validation_frame(tk.Frame):
-    def __init__(self,parent,coltype,colname,validation, theme = "dark"):
+    def __init__(self,parent,coltype,colname,validation, theme = "dark blue"):
         tk.Frame.__init__(self, parent, height = 210)
         self.grid_propagate(False)
         self.C = parent
@@ -889,7 +889,7 @@ For Date Detail columns and to limit user entry to only UK working day dates; en
 
 
 class validation_entry_with_scrollbar(tk.Frame):
-    def __init__(self,parent,coltype,theme = "dark"):
+    def __init__(self,parent,coltype,theme = "dark blue"):
         tk.Frame.__init__(self,parent)
         self.config(bg = theme_bg(theme))
         self.grid_columnconfigure(0,weight=1)
@@ -922,7 +922,7 @@ class validation_entry_with_scrollbar(tk.Frame):
 
 
 class validation_normal_entry(tk.Entry):
-    def __init__(self, parent, font, coltype, width_ = None, theme = "dark"):
+    def __init__(self, parent, font, coltype, width_ = None, theme = "dark blue"):
         tk.Entry.__init__(self, parent, font = font,
                           background = theme_entry_bg(theme),
                           foreground = theme_entry_fg(theme),
@@ -996,7 +996,7 @@ class validation_normal_entry(tk.Entry):
 
 
 class condition_entry_with_scrollbar(tk.Frame):
-    def __init__(self,parent,coltype="Text Detail", theme = "dark"):
+    def __init__(self,parent,coltype="Text Detail", theme = "dark blue"):
         tk.Frame.__init__(self,parent)
         self.config(bg = theme_bg(theme))
         self.grid_columnconfigure(0,weight=1)
@@ -1023,7 +1023,7 @@ class condition_entry_with_scrollbar(tk.Frame):
 
 
 class condition_normal_entry(tk.Entry):
-    def __init__(self, parent, font, coltype = "Text Detail", width_ = None, theme = "dark"):
+    def __init__(self, parent, font, coltype = "Text Detail", width_ = None, theme = "dark blue"):
         tk.Entry.__init__(self, parent, font = font,
                           background = theme_entry_bg(theme),
                           foreground = theme_entry_fg(theme),
@@ -1094,7 +1094,7 @@ class condition_normal_entry(tk.Entry):
 
 
 class formula_entry_with_scrollbar(tk.Frame):
-    def __init__(self, parent, theme = "dark"):
+    def __init__(self, parent, theme = "dark blue"):
         tk.Frame.__init__(self, parent, bg = theme_bg(theme))
         self.C = parent
         self.grid_columnconfigure(0,weight=1)
@@ -1121,7 +1121,7 @@ class formula_entry_with_scrollbar(tk.Frame):
 
 
 class formula_normal_entry(tk.Entry):
-    def __init__(self, parent, font, width_ = None, theme = "dark"):
+    def __init__(self, parent, font, width_ = None, theme = "dark blue"):
         tk.Entry.__init__(self, parent, font = font,
                           background = theme_entry_bg(theme),
                           foreground = theme_entry_fg(theme),
@@ -1187,7 +1187,7 @@ class formula_normal_entry(tk.Entry):
 
 
 class askconfirm_frame(tk.Frame):
-    def __init__(self,parent,action,confirm_text="Confirm",cancel_text="Cancel",bgcolor="green",fgcolor="white", theme = "dark"):
+    def __init__(self,parent,action,confirm_text="Confirm",cancel_text="Cancel",bgcolor="green",fgcolor="white", theme = "dark blue"):
         tk.Frame.__init__(self,parent,height=150, bg = theme_bg(theme))
         self.grid_propagate(False)
         self.C = parent
@@ -1221,7 +1221,7 @@ class askconfirm_frame(tk.Frame):
 
 
 class error_frame(tk.Frame):
-    def __init__(self,parent,msg, theme = "dark"):
+    def __init__(self,parent,msg, theme = "dark blue"):
         tk.Frame.__init__(self,parent,height=150, bg = theme_bg(theme))
         self.grid_propagate(False)
         self.C = parent
@@ -1258,7 +1258,7 @@ class treeview(ttk.Treeview):
 
 
 class working_text(tk.Text):
-    def __init__(self,parent,wrap,font=("Calibri",12), theme = "dark", use_entry_bg = True, override_bg = None):
+    def __init__(self,parent,wrap,font=("Calibri",12), theme = "dark blue", use_entry_bg = True, override_bg = None):
         tk.Text.__init__(self,
                          parent,
                          wrap=wrap,
@@ -1294,7 +1294,7 @@ class working_text(tk.Text):
 
 
 class display_text(tk.Frame):
-    def __init__(self, parent, text = "", theme = "dark"):
+    def __init__(self, parent, text = "", theme = "dark blue"):
         tk.Frame.__init__(self, parent, bg = theme_bg(theme))
         self.C = parent
         self.grid_rowconfigure(0, weight = 1)
@@ -1337,7 +1337,7 @@ class display_text(tk.Frame):
 
 
 class wrapped_text_with_find_and_yscroll(tk.Frame):
-    def __init__(self,parent,text,current_state,height=None, theme = "dark"):
+    def __init__(self,parent,text,current_state,height=None, theme = "dark blue"):
         tk.Frame.__init__(self, parent, bg = theme_bg(theme))
         self.C = parent
         self.theme = theme
@@ -1500,7 +1500,7 @@ class scrollbar(ttk.Scrollbar):
 
 
 class readonly_entry(tk.Entry):
-    def __init__(self, parent, font, width_ = None, theme = "dark"):
+    def __init__(self, parent, font, width_ = None, theme = "dark blue"):
         tk.Entry.__init__(self, parent, font = font, state = "readonly",
                           background = theme_entry_bg(theme),
                           foreground = theme_entry_fg(theme),
@@ -1544,7 +1544,7 @@ class readonly_entry(tk.Entry):
         self.insert(0,str(newvalue))
         self.config(state="readonly")
 
-    def change_theme(self, theme = "dark"):
+    def change_theme(self, theme = "dark blue"):
         self.config(background = theme_entry_bg(theme),
                       foreground = theme_entry_fg(theme),
                       disabledbackground = theme_entry_dbg(theme),
@@ -1555,7 +1555,7 @@ class readonly_entry(tk.Entry):
 
 class normal_entry(tk.Entry):
     def __init__(self,parent,font,width_=None,relief="sunken",
-                 border=1,textvariable=None, theme = "dark"):
+                 border=1,textvariable=None, theme = "dark blue"):
         tk.Entry.__init__(self,parent,font=font,relief=relief,
                           border=border,textvariable=textvariable,
                           background = theme_entry_bg(theme),
@@ -1613,7 +1613,7 @@ class normal_entry(tk.Entry):
         
 
 class readonly_entry_with_scrollbar(tk.Frame):
-    def __init__(self,parent,font=EF, theme = "dark"):
+    def __init__(self,parent,font=EF, theme = "dark blue"):
         tk.Frame.__init__(self,parent, bg = theme_bg(theme)) 
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
@@ -1640,13 +1640,13 @@ class readonly_entry_with_scrollbar(tk.Frame):
     def change_text(self, text = ""):
         self.my_entry.set_my_value(text)
 
-    def change_theme(self, theme = "dark"):
+    def change_theme(self, theme = "dark blue"):
         self.config(bg = theme_bg(theme))
         self.my_entry.change_theme(theme)
 
 
 class entry_with_scrollbar(tk.Frame):
-    def __init__(self, parent, theme = "dark"):
+    def __init__(self, parent, theme = "dark blue"):
         tk.Frame.__init__(self, parent, bg = theme_bg(theme))
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
@@ -1689,7 +1689,7 @@ class ez_dropdown(ttk.Combobox):
 
 
 class numerical_entry_with_scrollbar(tk.Frame):
-    def __init__(self, parent, theme = "dark"):
+    def __init__(self, parent, theme = "dark blue"):
         tk.Frame.__init__(self, parent, background = theme_bg(theme))
         self.grid_columnconfigure(0,weight=1)
         self.grid_rowconfigure(0,weight=1)
@@ -1715,7 +1715,7 @@ class numerical_entry_with_scrollbar(tk.Frame):
 
 
 class numerical_normal_entry(tk.Entry):
-    def __init__(self, parent, font, width_ = None, theme = "dark"):
+    def __init__(self, parent, font, width_ = None, theme = "dark blue"):
         tk.Entry.__init__(self,
                           parent,
                           font = font,
@@ -1788,7 +1788,7 @@ class numerical_normal_entry(tk.Entry):
 
 
 class date_entry(tk.Frame):
-    def __init__(self,parent,DATE_FORM, theme = "dark"):
+    def __init__(self,parent,DATE_FORM, theme = "dark blue"):
         tk.Frame.__init__(self,
                           parent,
                           relief="flat",
@@ -2081,7 +2081,7 @@ class date_entry(tk.Frame):
 
 
 class rename_column_frame(tk.Frame):
-    def __init__(self, C, current_col_name, type_of_col, theme = "dark"):
+    def __init__(self, C, current_col_name, type_of_col, theme = "dark blue"):
         tk.Frame.__init__(self, C, height = 190, bg = theme_bg(theme))
         self.grid_propagate(False)
         self.C = C
@@ -2122,7 +2122,7 @@ class rename_column_frame(tk.Frame):
 
 
 class add_hierarchy_frame(tk.Frame):
-    def __init__(self, C, theme = "dark"):
+    def __init__(self, C, theme = "dark blue"):
         tk.Frame.__init__(self, C, height = 150, bg = theme_bg(theme))
         self.grid_propagate(False)
         self.C = C
@@ -2153,7 +2153,7 @@ class add_hierarchy_frame(tk.Frame):
         
 
 class add_detail_column_frame(tk.Frame):
-    def __init__(self,C, theme = "dark"):
+    def __init__(self,C, theme = "dark blue"):
         tk.Frame.__init__(self, C, height = 150, bg = theme_bg(theme))
         self.grid_propagate(False)
         self.grid_columnconfigure(2,weight=1)
@@ -2191,7 +2191,7 @@ class add_detail_column_frame(tk.Frame):
 
 
 class frame(tk.Frame):
-    def __init__(self,parent,background="white",highlightbackground="white",highlightthickness=0,theme = "dark"):
+    def __init__(self,parent,background="white",highlightbackground="white",highlightthickness=0,theme = "dark blue"):
         tk.Frame.__init__(self,parent,
                           background=theme_bg(theme),
                           highlightbackground=highlightbackground,
@@ -2214,7 +2214,7 @@ class button(ttk.Button):
 
 
 class StatusBar(tk.Label):
-    def __init__(self, parent, text, theme = "dark"):
+    def __init__(self, parent, text, theme = "dark blue"):
         tk.Label.__init__(self,
                           parent,
                           text = text,
@@ -2231,7 +2231,7 @@ class StatusBar(tk.Label):
 
 
 class label(tk.Label):
-    def __init__(self,parent,text,font,theme = "dark", anchor = "center"):
+    def __init__(self,parent,text,font,theme = "dark blue", anchor = "center"):
         tk.Label.__init__(self,parent,
                           text=text,font=font,
                           background=theme_bg(theme),
@@ -2244,7 +2244,7 @@ class label(tk.Label):
 
 
 class displabel(tk.Label):
-    def __init__(self,parent,text,font, theme = "dark"):
+    def __init__(self,parent,text,font, theme = "dark blue"):
         tk.Label.__init__(self,parent,
                           background=theme_bg(theme),
                           text=text,font=font)

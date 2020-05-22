@@ -33,160 +33,198 @@ contact_email = "ragardner@protonmail.com"
 website1 = "github.com/ragardner"
 website2 = "ragardner.github.io/Tree-Surgeon"
 
-def theme_button_fg(theme = "dark"):
+def theme_button_fg(theme = "dark blue"):
     return "#2b2b2b"
 
-def theme_bg(theme = "dark"):
-    if theme == "light":
+def theme_bg(theme = "dark blue"):
+    if theme == "light blue":
         return "#f0f0f0"
-    elif theme == "green":
-        return "#edebe9"
-    elif theme == "dark":
-        return "#2b2b2b"
+    elif theme == "light green":
+        return "#f3f2f1"
+    elif theme == "dark blue":
+        return "#2f2f2f"
+    elif theme == "dark green":
+        return "#2f2f2f"
 
-def theme_fg(theme = "dark"):
-    if theme == "light":
+def theme_fg(theme = "dark blue"):
+    if theme == "light blue":
         return "#2b2b2b"
-    elif theme == "green":
-        return "#373737"
-    elif theme == "dark":
+    elif theme == "light green":
+        return "#2b2b2b"
+    elif theme == "dark blue":
+        return "white"
+    elif theme == "dark green":
         return "white"
 
-def theme_entry_bg(theme = "dark"):
-    if theme == "light":
+def theme_entry_bg(theme = "dark blue"):
+    if theme == "light blue":
         return "white"
-    elif theme == "green":
+    elif theme == "light green":
         return "white"
-    elif theme == "dark":
+    elif theme == "dark blue":
+        return "#3d3d3d"
+    elif theme == "dark green":
         return "#3d3d3d"
 
-def theme_entry_fg(theme = "dark"):
-    if theme == "light":
+def theme_entry_fg(theme = "dark blue"):
+    if theme == "light blue":
         return "black"
-    elif theme == "green":
-        return "#373737"
-    elif theme == "dark":
-        return "#f0f0f0"
-
-def theme_entry_dbg(theme = "dark"):
-    if theme == "light":
-        return "#f0f0f0"
-    elif theme == "green":
-        return "#edebe9"
-    elif theme == "dark":
+    elif theme == "light green":
         return "#2b2b2b"
+    elif theme == "dark blue":
+        return "#f0f0f0"
+    elif theme == "dark green":
+        return "#f0f0f0"
 
-def theme_entry_dfg(theme = "dark"):
-    if theme == "light":
+def theme_entry_dbg(theme = "dark blue"):
+    if theme == "light blue":
+        return "#f0f0f0"
+    elif theme == "light green":
+        return "#edebe9"
+    elif theme == "dark blue":
+        return "#2f2f2f"
+    elif theme == "dark green":
+        return "#2f2f2f"
+
+def theme_entry_dfg(theme = "dark blue"):
+    if theme == "light blue":
         return "gray55"
-    elif theme == "green":
+    elif theme == "light green":
         return "#373737"
-    elif theme == "dark":
+    elif theme == "dark blue":
+        return "#9fa6ad"
+    elif theme == "dark green":
         return "#9fa6ad"
 
-def theme_entry_cursor(theme = "dark"):
-    if theme == "light":
+def theme_entry_cursor(theme = "dark blue"):
+    if theme == "light blue":
         return "black"
-    elif theme == "green":
-        return "#373737"
-    elif theme == "dark":
+    elif theme == "light green":
+        return "#2b2b2b"
+    elif theme == "dark blue":
+        return "#f0f0f0"
+    elif theme == "dark green":
         return "#f0f0f0"
 
-def theme_red_bg(theme = "dark"):
-    if theme == "light":
+def theme_red_bg(theme = "dark blue"):
+    if theme == "light blue":
         return "#ffeef0"
-    elif theme == "green":
+    elif theme == "light green":
         return "#ffeef0"
-    elif theme == "dark":
+    elif theme == "dark blue":
+        return "#6e3d3d"
+    elif theme == "dark green":
         return "#6e3d3d"
 
-def theme_red_fg(theme = "dark"):
-    if theme == "light":
+def theme_red_fg(theme = "dark blue"):
+    if theme == "light blue":
         return "black"
-    elif theme == "green":
+    elif theme == "light green":
         return "#373737"
-    elif theme == "dark":
+    elif theme == "dark blue":
+        return "white"
+    elif theme == "dark green":
         return "white"
 
-def theme_green_bg(theme = "dark"):
-    if theme == "light":
+def theme_green_bg(theme = "dark blue"):
+    if theme == "light blue":
         return "#e6ffed"
-    elif theme == "green":
+    elif theme == "light green":
         return "#e6ffed"
-    elif theme == "dark":
+    elif theme == "dark blue":
+        return "#3d6e3d"
+    elif theme == "dark green":
         return "#3d6e3d"
 
-def theme_green_fg(theme = "dark"):
-    if theme == "light":
+def theme_green_fg(theme = "dark blue"):
+    if theme == "light blue":
         return "black"
-    elif theme == "green":
+    elif theme == "light green":
         return "#373737"
-    elif theme == "dark":
+    elif theme == "dark blue":
+        return "white"
+    elif theme == "dark green":
         return "white"
 
-def theme_status_fg(theme = "dark"):
-    if theme == "light":
+def theme_status_fg(theme = "dark blue"):
+    if theme == "light blue":
         return "#191919"
-    elif theme == "green":
+    elif theme == "light green":
         return "#191919"
-    elif theme == "dark":
+    elif theme == "dark blue":
         return "#f48224"
-
-def theme_treeview_selected_bg(theme = "dark"):
-    if theme == "light":
+    elif theme == "dark green":
+        return "white"
+    
+def theme_treeview_selected_bg(theme = "dark blue"):
+    if theme == "light blue":
         return "#1a73e8"
-    elif theme == "green":
+    elif theme == "light green":
         return "#217346"
-    elif theme == "dark":
+    elif theme == "dark blue":
         return "#1a73e8"
+    elif theme == "dark green":
+        return "#36897f"
 
-def theme_treeview_selected_fg(theme = "dark"):
-    if theme == "light":
+def theme_treeview_selected_fg(theme = "dark blue"):
+    if theme == "light blue":
         return "white"
-    elif theme == "green":
+    elif theme == "light green":
         return "white"
-    elif theme == "dark":
+    elif theme == "dark blue":
+        return "white"
+    elif theme == "dark green":
         return "white"
 
-def theme_treeview_fg(theme = "dark"):
-    if theme == "dark":
+def theme_treeview_fg(theme = "dark blue"):
+    if theme == "dark blue":
         return "#ecf0f2"
-    elif theme == "green":
+    elif theme == "light green":
         return "#232323"
-    elif theme == "light":
+    elif theme == "light blue":
         return "#232323"
+    elif theme == "dark green":
+        return "#ecf0f2"
 
-def theme_treeview_bg(theme = "dark"):
-    if theme == "light":
+def theme_treeview_bg(theme = "dark blue"):
+    if theme == "light blue":
         return "#fafafa"
-    elif theme == "green":
+    elif theme == "light green":
         return "#fafafa"
-    elif theme == "dark":
+    elif theme == "dark blue":
+        return "#3d3d3d"
+    elif theme == "dark green":
         return "#3d3d3d"
 
-def theme_treeview_heading_bg(theme = "dark"):
-    if theme == "dark":
+def theme_treeview_heading_bg(theme = "dark blue"):
+    if theme == "dark blue":
         return "#2d2d2d"
-    elif theme == "green":
+    elif theme == "light green":
         return "#f3f2f1"
-    elif theme == "light":
+    elif theme == "light blue":
         return "#f8f9fa"
+    elif theme == "dark green":
+        return "#2d2d2d"
 
-def theme_treeview_heading_fg(theme = "dark"):
-    if theme == "dark":
+def theme_treeview_heading_fg(theme = "dark blue"):
+    if theme == "dark blue":
         return "#c2c9cf"
-    elif theme == "green":
+    elif theme == "light green":
         return "#373737"
-    elif theme == "light":
+    elif theme == "light blue":
         return "#1e3442"
+    elif theme == "dark green":
+        return "#c2c9cf"
 
-def theme_treeview_relief(theme = "dark"):
-    if theme == "dark":
+def theme_treeview_relief(theme = "dark blue"):
+    if theme == "dark blue":
         return "sunken"
-    elif theme == "green":
+    elif theme == "light green":
         return "raised"
-    elif theme == "light":
+    elif theme == "light blue":
         return "raised"
+    elif theme == "dark green":
+        return "sunken"
 
 def fixed_map(option, style):
     return [elm for elm in style.map('Treeview', query_opt=option) if elm[:2] != ('!disabled', '!selected')]

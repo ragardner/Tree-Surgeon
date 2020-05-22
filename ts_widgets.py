@@ -2254,3 +2254,7 @@ class displabel(tk.Label):
         self.config(text=text)
         self.update_idletasks()
 
+
+
+
+        

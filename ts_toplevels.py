@@ -1,6 +1,9 @@
 #Copyright © 2020 R. A. Gardner
 
+#from ts_classes_c import *
 from ts_extra_vars_and_funcs import *
+from ts_widgets import *
+
 import tkinter as tk
 from tkinter import ttk, filedialog
 import csv as csv_module
@@ -249,20 +252,22 @@ class export_flattened_popup(tk.Toplevel):
     def build_flattened(self):
         self.start_work("Flattening sheet...")
         self.sheetdisplay.deselect("all")
-        self.sheetdisplay.set_sheet_data(data = self.C.build_flattened(self.C.sheet,
-                                                                     self.sheetdisplay.get_sheet_data(),
-                                                                     [f"{hdr.name}" for hdr in self.C.headers],
-                                                                     int(self.C.ic),
-                                                                     int(self.C.hiers[self.selector.get_col()]),
-                                                                     list(self.C.hiers),
-                                                                     self.justify_rows_button.get_checked(),
-                                                                     self.order_button.get_checked(),
-                                                                     self.only_base_ids_button.get_checked(),
-                                                                     self.remove_details_button.get_checked(),
-                                                                     self.split_1st_det_col_button.get_checked(),
-                                                                     self.add_index_button.get_checked(),
-                                                                     self.rename_id_col_button.get_checked()),
-                                         verify = False)
+        self.sheetdisplay.set_sheet_data(data = self.C.treebuilder.build_flattened(self.C.sheet,
+                                                                                     self.sheetdisplay.get_sheet_data(),
+                                                                                   self.C.nodes,
+                                                                                   self.C.column_index1,
+                                                                                     [f"{hdr.name}" for hdr in self.C.headers],
+                                                                                     int(self.C.ic),
+                                                                                     int(self.C.hiers[self.selector.get_col()]),
+                                                                                     list(self.C.hiers),
+                                                                                     self.justify_rows_button.get_checked(),
+                                                                                     self.order_button.get_checked(),
+                                                                                     self.only_base_ids_button.get_checked(),
+                                                                                     self.remove_details_button.get_checked(),
+                                                                                     self.split_1st_det_col_button.get_checked(),
+                                                                                     self.add_index_button.get_checked(),
+                                                                                     self.rename_id_col_button.get_checked()),
+                                                         verify = False)
         self.sheetdisplay.set_all_cell_sizes_to_text()
         self.stop_work("Sheet successfully flattened!")
         
@@ -1136,6 +1141,2438 @@ class compare_report_popup(tk.Toplevel):
         self.USER_HAS_CLOSED_WINDOW()
 
 
+class find_and_replace_popup(tk.Toplevel):
+    def __init__(self, C, ss_selection, theme = "dark", within = False, pars = False):
+        tk.Toplevel.__init__(self,C,width="1",height="1", bg = theme_bg(theme))
+        self.withdraw()
+        self.resizable(False,False)
+        self.tk.call("wm","iconphoto",self._w,tk.PhotoImage(format="gif",data=top_left_icon))
+        self.title("Find and replace - Click the X button or press escape to go back")
+        self.C = C
+        self.wm_transient(self.C)
+        self.focus_force()
+        self.grid_columnconfigure(0, weight = 1)
+        
+        self.last_found = None
+        self.last_replaced = None
+        
+        self.notebook = ttk.Notebook(self)
+        self.notebook.grid(row=0,column=0,sticky="nswe")
+        
+        self.f1 = frame(self, theme = theme)
+        self.f1.grid_columnconfigure(0,weight=1)
+        self.f1.grid_columnconfigure(1, weight = 1)
+        self.notebook.add(self.f1, text = "Find in all Hierarchies")
+
+        self.f2 = frame(self, theme = theme)
+        self.f2.grid_columnconfigure(0,weight=1)
+        self.f2.grid_columnconfigure(1, weight = 1)
+        self.notebook.add(self.f2, text = "Find in Sheet")
+        self.notebook.select(self.f2)
+        self.notebook.enable_traversal()
+
+        self.id_or_detail = ez_dropdown(self.f1,EF)
+        self.id_or_detail['values'] = ["Find ID","Find detail"]
+        self.id_or_detail.set_my_value("Find ID")
+        self.id_or_detail.grid(row=0,column=0,sticky="nswe",padx=(20,5),pady=(10,5))
+        self.match_option = ez_dropdown(self.f1,EF)
+        self.match_option['values'] = ["Non-exact match","Exact match"]
+        self.match_option.set_my_value("Non-exact match")
+        self.match_option.grid(row=0,column=1,sticky="nswe",padx=(5,20),pady=(10,5))
+        self.tv_find_entry = entry_with_scrollbar(self.f1, theme = theme)
+        self.tv_find_entry.grid(row=1,column=0,columnspan=2,sticky="nswe",padx=20,pady=10)
+        self.enter_ss_sel_button = button(self.f1,text="Enter current sheet selection",style="EF.Std.TButton",command=self.enter_ss_sel)
+        self.enter_ss_sel_button.grid(row=2,column=0,columnspan=2,sticky="nswe",padx=20,pady=5)
+        if not ss_selection:
+            self.enter_ss_sel_button.config(state="disabled")
+        else:
+            self.ss_sel = ss_selection
+
+        self.bf = frame(self.f1, theme = theme)
+        self.bf.grid_columnconfigure(0, weight = 1, uniform = "x")
+        self.bf.grid_columnconfigure(1, weight = 1, uniform = "x")
+        self.bf.grid(row = 4, column = 0, columnspan = 2, sticky = "nswe")
+        
+        self.tv_confirm_button = button(self.bf,text="Find",style="EF.Std.TButton",command=self.tv_confirm)
+        self.tv_confirm_button.grid(row=0,column=0,sticky="nswe",padx = (45, 30), pady = 10)
+        self.tv_cancel_button = button(self.bf,text="Cancel",style="EF.Std.TButton",command=self.cancel)
+        self.tv_cancel_button.grid(row = 0, column = 1, sticky = "nswe", padx = (30, 45), pady = 10)
+        
+        self.id_or_detail.bind("<<ComboboxSelected>>",lambda event: self.tv_find_entry.place_cursor())
+        self.match_option.bind("<<ComboboxSelected>>",lambda event: self.tv_find_entry.place_cursor())
+
+        self.frframe = frame(self.f2, theme = theme)
+        self.frframe.grid_columnconfigure(1, weight = 1)
+        self.frframe.grid(row = 0, column = 0, columnspan = 2, sticky = "nswe")
+
+        self.find_label = label(self.frframe,text="Find",font=EF, theme = theme, anchor = "w")
+        self.find_label.grid(row=0,column=0,sticky="nswe", pady = (0,14), padx=(20,10))
+        self.find_display = entry_with_scrollbar(self.frframe, theme = theme)
+        self.find_display.grid(row=0,column=1,sticky="nswe",pady=10,padx=(0,20))
+
+        self.rep_label = label(self.frframe,text="Replace with",font=EF, theme = theme, anchor = "w")
+        self.rep_label.grid(row=1,column=0,sticky="nswe", pady = (0, 17), padx=(20,10))
+        self.rep_display = entry_with_scrollbar(self.frframe, theme = theme)
+        self.rep_display.grid(row=1,column=1,sticky="nswe",pady=10,padx=(0,20))
+
+        self.ids_button = x_checkbutton(self.frframe,
+                                          text="  Find Parents",
+                                          style="wx_button.Std.TButton",
+                                        checked = pars,
+                                          compound="left")
+        self.ids_button.grid(row=2,column=1,padx=(0, 20),pady=5,sticky="we")
+
+        self.details_button = x_checkbutton(self.frframe,
+                                            text="  Find Details",
+                                            style="wx_button.Std.TButton",
+                                            checked = True,
+                                            compound="left")
+        self.details_button.grid(row=3,column=1,padx=(0, 20),pady=5,sticky="we")
+
+        self.where = x_checkbutton(self.frframe,
+                                  text="  Only within selected cells",
+                                  style="wx_button.Std.TButton",
+                                   checked = bool(within),
+                                 compound="left")
+        self.where.grid(row=4,column=1,padx=(0, 20),pady=5,sticky="we")
+
+        self.match_button = x_checkbutton(self.frframe,
+                                            text="  Exact match",
+                                            style="wx_button.Std.TButton",
+                                            compound="left")
+        self.match_button.grid(row=5,column=1,padx=(0, 20),pady=5,sticky="we")
+
+        self.allcols_button = x_checkbutton(self.frframe,
+                                            text="  Show and include hidden columns",
+                                            style="wx_button.Std.TButton",
+                                            checked = False,
+                                            compound="left")
+        self.allcols_button.grid(row=6,column=1,padx=(0, 20),pady=(5,10),sticky="we")
+
+        self.bf2 = frame(self.frframe, theme = theme)
+        self.bf2.grid_columnconfigure(0, weight = 1, uniform = "x")
+        self.bf2.grid_columnconfigure(1, weight = 1, uniform = "x")
+        self.bf2.grid_columnconfigure(2, weight = 1, uniform = "x")
+        self.bf2.grid_columnconfigure(3, weight = 1, uniform = "x")
+        self.bf2.grid(row = 7, column = 0, columnspan = 2, sticky = "nswe")
+
+        self.find_button = button(self.bf2,text="Find next",style="EF.Std.TButton",command=self.find_next)
+        self.find_button.grid(row=0,column=0,sticky="nswe",padx = (20, 5), pady = (15, 10))
+        
+        self.replace_button = button(self.bf2,text="Replace next",style="EF.Std.TButton",command=self.replace_next)
+        self.replace_button.grid(row = 0, column = 1, sticky = "nswe", padx = 5, pady = (15, 10))
+        
+        self.replace_all_button = button(self.bf2,text="Replace all",style="EF.Std.TButton",command=self.replace_all)
+        self.replace_all_button.grid(row=0,column=2,sticky="nswe",padx = 5, pady = (15, 10))
+        
+        self.done_button = button(self.bf2,text="Done",style="EF.Std.TButton",command=self.cancel)
+        self.done_button.grid(row = 0, column = 3, sticky = "nswe", padx = (5, 20), pady = (15, 10))
+
+        self.status_bar = readonly_entry_with_scrollbar(self, theme = theme)
+        self.status_bar.change_text(text = "Please note that case is currently ignored in search results")
+        self.status_bar.my_entry.config(relief = "flat", font = ("Calibri", 11))
+        self.status_bar.grid(row = 1, column = 0, sticky = "we")
+        
+        self.tv_find_entry.my_entry.bind("<Return>",self.tv_confirm)
+        self.find_display.my_entry.bind("<Return>", self.find_next)
+        self.rep_display.my_entry.bind("<Return>", self.find_next)
+        self.bind("<Control-g>", self.find_next)
+        self.bind("<Control-G>", self.find_next)
+        self.bind("<Escape>",self.cancel)
+        self.bind("<Control-z>", self.C.undo)
+        self.bind("<Control-Z>", self.C.undo)
+        self.result = False
+        self.find_display.place_cursor()
+        self.tv_find_entry.place_cursor()
+        center(self,470,440, move_left = True)
+        self.deiconify()
+
+    def see_and_set(self, r, c, just_see = False, lf = False, lr = False):
+        if not just_see:
+            if self.where.get_checked():
+                self.C.sheetdisplay.set_currently_selected(r, c)
+            else:
+                self.C.sheetdisplay.select_cell(row = r, column = c)
+        self.C.sheetdisplay.see(row = r, column = c, keep_yscroll = False, keep_xscroll = False,
+                                bottom_right_corner = False, check_cell_visibility = True)
+        if lf:
+            self.last_found = (r, c)
+        if lr:
+            self.last_replaced = (r, c)
+        return True
+
+    def find_next(self, event  = None):
+        self.find_display.place_cursor()
+        ids = self.ids_button.get_checked()
+        dets = self.details_button.get_checked()
+        if not ids and not dets:
+            self.status_bar.change_text("Select a search option, IDs and Parents and/or Details")
+            return
+        search = self.find_display.get_my_value().lower()
+        match = self.match_button.get_checked()
+        allcols = self.allcols_button.get_checked()
+        if allcols and not self.C.all_columns_displayed:
+            self.C.displayed_columns = list(range(len(self.C.headers)))
+            self.C.all_columns_displayed = True
+            self.C.ss_hiding_cols_button.set_checked(not self.C.all_columns_displayed)
+            self.C.sheetdisplay.display_subset_of_columns(indexes=self.C.displayed_columns,
+                                                      enable=not self.C.all_columns_displayed,
+                                                      reset_col_positions=False)
+            self.C.set_all_col_widths()
+            self.C.disable_paste()
+        showing = {c: i for i, c in enumerate(self.C.displayed_columns)}
+        ind = self.C.indices
+        qic = self.C.ic
+        where = self.where.get_checked()
+        rst, cst = self.C.sheetdisplay.get_currently_selected(True, True)
+        if rst is None or cst is None:
+            self.C.sheetdisplay.deselect("all")
+            self.see_and_set(0, 0)
+            rst, cst = 0, 0
+        else:
+            self.see_and_set(rst, cst, just_see = True)
+        found = False
+        if where:
+            sels = self.C.sheetdisplay.get_selected_cells(get_rows = True, get_columns = True, sort_by_row = True, sort_by_column = True)
+            curridx = next(i for i, t in enumerate(sels) if t[0] == rst and t[1] == cst)
+            if self.last_found == (rst, cst):
+                if curridx == len(sels) - 1:
+                    curridx = 0
+                else:
+                    curridx += 1
+            sels = sels[curridx:] + sels[:curridx]
+            for r, c in sels:
+                c = self.C.displayed_columns[c]
+                e = self.C.sheet[r][c]
+                if not allcols and c not in showing:
+                    continue
+                if c == qic:
+                    continue
+                if ids and c in ind:
+                    if match and e.lower() == search:
+                        found = self.see_and_set(r, showing[c], lf = True)
+                        break
+                    elif not match and search in e.lower():
+                        found = self.see_and_set(r, showing[c], lf = True)
+                        break
+                if dets and c not in ind:
+                    if match and e.lower() == search:
+                        found = self.see_and_set(r, showing[c], lf = True)
+                        break
+                    elif not match and search in e.lower():
+                        found = self.see_and_set(r, showing[c], lf = True)
+                        break
+        else:
+            if self.last_found == (rst, cst):
+                if rst == len(self.C.sheet) - 1 and cst == len(self.C.displayed_columns) - 1:
+                    rst, cst = 0, 0
+                elif cst == len(self.C.displayed_columns) - 1:
+                    rst += 1
+                    cst = 0
+                else:
+                    cst += 1
+            for c, e in enumerate(islice(self.C.sheet[rst], self.C.displayed_columns[cst], len(self.C.sheet[rst])), self.C.displayed_columns[cst]):
+                if not allcols and c not in showing:
+                    continue
+                if c == qic:
+                    continue
+                if ids and c in ind:
+                    if match and e.lower() == search:
+                        found = self.see_and_set(rst, showing[c], lf = True)
+                        break
+                    elif not match and search in e.lower():
+                        found = self.see_and_set(rst, showing[c], lf = True)
+                        break
+                if dets and c not in ind:
+                    if match and e.lower() == search:
+                        found = self.see_and_set(rst, showing[c], lf = True)
+                        break
+                    elif not match and search in e.lower():
+                        found = self.see_and_set(rst, showing[c], lf = True)
+                        break
+            if not found:
+                if len(self.C.sheet) - 1 == rst:
+                    rns = range(len(self.C.sheet))
+                else:
+                    rns = tuple(range(rst + 1, len(self.C.sheet))) + tuple(range(0, rst + 1))
+                for rn in rns:
+                    if found:
+                        break
+                    for c, e in enumerate(self.C.sheet[rn]):
+                        if not allcols and c not in showing:
+                            continue
+                        if c == qic:
+                            continue
+                        if ids and c in ind:
+                            if match and e.lower() == search:
+                                found = self.see_and_set(rn, showing[c], lf = True)
+                                break
+                            elif not match and search in e.lower():
+                                found = self.see_and_set(rn, showing[c], lf = True)
+                                break
+                        if dets and c not in ind:
+                            if match and e.lower() == search:
+                                found = self.see_and_set(rn, showing[c], lf = True)
+                                break
+                            elif not match and search in e.lower():
+                                found = self.see_and_set(rn, showing[c], lf = True)
+                                break
+        if found:
+            self.status_bar.change_text(f"Found {self.find_display.get_my_value()} for {self.C.sheet[self.last_found[0]][self.C.ic]} in {self.C.headers[self.C.displayed_columns[self.last_found[1]]].name}")
+        else:
+            self.status_bar.change_text(f"Could not find {self.find_display.get_my_value()}")
+
+    def replace_next(self, event = None):
+        if self.C.showing_all_hierarchies:
+            self.status_bar.change_text("Cannot perform action while showing all hierarchies")
+            return
+        ids = self.ids_button.get_checked()
+        dets = self.details_button.get_checked()
+        if not ids and not dets:
+            self.status_bar.change_text("Select a search option, IDs and Parents and/or Details")
+            return
+        search = self.find_display.get_my_value().lower()
+        newtext = self.rep_display.get_my_value()
+        if search == newtext:
+            self.status_bar.change_text("Error: Find value is the same as replace value")
+            return
+        match = self.match_button.get_checked()
+        where = self.where.get_checked()
+        allcols = self.allcols_button.get_checked()
+        if allcols and not self.C.all_columns_displayed:
+            self.C.displayed_columns = list(range(len(self.C.headers)))
+            self.C.all_columns_displayed = True
+            self.C.ss_hiding_cols_button.set_checked(not self.C.all_columns_displayed)
+            self.C.sheetdisplay.display_subset_of_columns(indexes=self.C.displayed_columns,
+                                                      enable=not self.C.all_columns_displayed,
+                                                      reset_col_positions=False)
+            self.C.set_all_col_widths()
+            self.C.disable_paste()
+        showing = {c: i for i, c in enumerate(self.C.displayed_columns)}
+        valids = {c: self.C.detail_is_valid_for_col(c, newtext) for c in range(len(self.C.headers))}
+        ind = self.C.indices
+        qic = self.C.ic
+        with_formulas = set(i for i, c in enumerate(self.C.headers) if c.formula)
+        rst, cst = self.C.sheetdisplay.get_currently_selected(True, True)
+        if rst is None or cst is None:
+            self.C.sheetdisplay.deselect("all")
+            self.see_and_set(0, 0)
+            rst, cst = 0, 0
+        else:
+            self.see_and_set(rst, cst, just_see = True)
+        found = False
+        to_replace = None
+        if where:
+            sels = self.C.sheetdisplay.get_selected_cells(get_rows = True, get_columns = True, sort_by_row = True, sort_by_column = True)
+            curridx = next(i for i, t in enumerate(sels) if t[0] == rst and t[1] == cst)
+            if self.last_replaced == (rst, cst):
+                if curridx == len(sels) - 1:
+                    curridx = 0
+                else:
+                    curridx += 1
+            sels = sels[curridx:] + sels[:curridx]
+            for rn, c in sels:
+                c = self.C.displayed_columns[c]
+                e = self.C.sheet[rn][c]
+                if c == qic or c in with_formulas:
+                    continue
+                if not allcols and c not in showing:
+                    continue
+                if ids and c in ind:
+                    elow = e.lower()
+                    if match and elow == search and elow != newtext:
+                        found = self.see_and_set(rn, showing[c], lf = True, lr = True)
+                        to_replace = rn, c
+                        break
+                    elif not match and search in elow and elow != newtext:
+                        found = self.see_and_set(rn, showing[c], lf = True, lr = True)
+                        to_replace = rn, c
+                        break
+                if dets and c not in ind:
+                    elow = e.lower()
+                    if match and elow == search and elow != newtext and valids[c]:
+                        found = self.see_and_set(rn, showing[c], lf = True, lr = True)
+                        to_replace = rn, c
+                        break
+                    elif not match and search in elow and elow != newtext and self.C.detail_is_valid_for_col(c, case_insensitive_replace(search, newtext, e)):
+                        found = self.see_and_set(rn, showing[c], lf = True, lr = True)
+                        to_replace = rn, c
+                        break
+        else:
+            if self.last_replaced == (rst, cst):
+                if rst == len(self.C.sheet) - 1 and cst == len(self.C.displayed_columns) - 1:
+                    rst, cst = 0, 0
+                elif cst == len(self.C.displayed_columns) - 1:
+                    rst += 1
+                    cst = 0
+                else:
+                    cst += 1
+            for c, e in enumerate(islice(self.C.sheet[rst], self.C.displayed_columns[cst], len(self.C.sheet[rst])), self.C.displayed_columns[cst]):
+                if c == qic or c in with_formulas:
+                    continue
+                if not allcols and c not in showing:
+                    continue
+                if ids and c in ind:
+                    elow = e.lower()
+                    if match and elow == search and elow != newtext:
+                        found = self.see_and_set(rst, showing[c], lf = True, lr = True)
+                        to_replace = rst, c
+                        break
+                    elif not match and search in elow and elow != newtext:
+                        found = self.see_and_set(rst, showing[c], lf = True, lr = True)
+                        to_replace = rst, c
+                        break
+                if dets and c not in ind:
+                    elow = e.lower()
+                    if match and elow == search and elow != newtext and valids[c]:
+                        found = self.see_and_set(rst, showing[c], lf = True, lr = True)
+                        to_replace = rst, c
+                        break
+                    elif not match and search in elow and elow != newtext and self.C.detail_is_valid_for_col(c, case_insensitive_replace(search, newtext, e)):
+                        found = self.see_and_set(rst, showing[c], lf = True, lr = True)
+                        to_replace = rst, c
+                        break
+            if not found:
+                if len(self.C.sheet) - 1 == rst:
+                    rns = range(len(self.C.sheet))
+                else:
+                    rns = tuple(range(rst + 1, len(self.C.sheet))) + tuple(range(0, rst + 1))
+                for rn in rns:
+                    if found:
+                        break
+                    for c, e in enumerate(self.C.sheet[rn]):
+                        if c == qic or c in with_formulas:
+                            continue
+                        if not allcols and c not in showing:
+                            continue
+                        if ids and c in ind:
+                            elow = e.lower()
+                            if match and elow == search and elow != newtext:
+                                found = self.see_and_set(rn, showing[c], lf = True, lr = True)
+                                to_replace = rn, c
+                                break
+                            elif not match and search in elow and elow != newtext:
+                                found = self.see_and_set(rn, showing[c], lf = True, lr = True)
+                                to_replace = rn, c
+                                break
+                        if dets and c not in ind:
+                            elow = e.lower()
+                            if match and elow == search and elow != newtext and valids[c]:
+                                found = self.see_and_set(rn, showing[c], lf = True, lr = True)
+                                to_replace = rn, c
+                                break
+                            elif not match and search in elow and elow != newtext and self.C.detail_is_valid_for_col(c, case_insensitive_replace(search, newtext, e)):
+                                found = self.see_and_set(rn, showing[c], lf = True, lr = True)
+                                to_replace = rn, c
+                                break
+        if found:
+            r = to_replace[0]
+            c = to_replace[1]
+            if not match:
+                newtext = case_insensitive_replace(search, newtext, self.C.sheet[r][c])
+            if self.C.headers[c].type_ == "ID":
+                self.status_bar.change_text(f"Cannot edit ID column, named: {self.C.headers[c].name}")
+                return
+            elif self.C.headers[c].formula:
+                self.status_bar.change_text(f"Cannot edit column with formula, named: {self.C.headers[c].name}")
+                return
+            if self.C.headers[c].type_ == "Parent":
+                self.C.snapshot_paste_id()
+                oldparent = f"{self.C.sheet[r][c]}"
+                successful = self.C.cut_paste_edit_cell(self.sheet[r][self.C.ic], oldparent, c, newtext)
+                if successful:
+                    self.status_bar.change_text(f"Replaced {oldparent} with {newtext} for {self.C.sheet[r][self.C.ic]} in {self.C.headers[c].name}")
+                    self.C.changelog.append((self.C.get_datetime_changelog(),
+                                           self.C.user_name,
+                                           "Cut and paste ID + children" if self.C.nodes[self.C.sheet[r][self.C.ic].lower()].cn[c] else "Cut and paste ID",
+                                           self.C.sheet[r][self.C.ic],
+                                           f"Old parent: {oldparent} old column #{c + 1} named: {self.C.headers[c].name}",
+                                           f"New parent: {newtext} new column #{c + 1} named: {self.headers[c].name}"))
+                    self.C.refresh_all_formulas_and_formatting(rows = [r])
+                    self.C.prnt_tree()
+                    self.C.sheetdisplay.refresh()
+                    try:
+                        self.C.treedisplay.selection_set(self.C.sheet[r][self.C.ic])
+                        self.C.see_item(self.sheet[r][self.C.ic])
+                    except:
+                        pass
+                    self.C.disable_paste()
+                    self.C.stop_work(self.C.set_status_bar())
+                    return
+                else:
+                    self.C.vs.pop()
+                    self.C.vp -= 1
+                    self.C.set_undo_label()
+                    self.status_bar.change_text(f"Replaced {self.C.sheet[r][c]} with {newtext} for {self.C.sheet[r][self.C.ic]} in {self.C.headers[c].name}")
+                    self.C.changelog.append((self.C.get_datetime_changelog(),
+                                           self.C.user_name,
+                                           f"Edit cell",
+                                           f"ID: {self.C.sheet[r][self.C.ic]} column #{c + 1} named: {self.C.headers[c].name} with type: {self.C.headers[c].type_}",
+                                           f"{self.C.sheet[r][c]}",
+                                           f"{newtext}"))
+                    self.C.snapshot_ctrl_x_v_del_key_id_par()
+                    self.C.sheet[r][c] = newtext
+                    self.C.nodes = {}
+                    self.C.disable_paste()
+                    self.C.clear_copied_details()
+                    self.C.auto_sort_nodes_bool.set(True)
+                    self.C.build_tree_start(add_warnings = False)
+                    self.C.fix_associate_sort_edit_cells()
+                    self.C.rns = {r[self.C.ic].lower(): i for i,r in enumerate(self.C.sheet)}
+                    self.C.sheetdisplay.deselect("all")
+                    self.C.sheetdisplay.data_reference(newdataref = self.C.sheet, reset_col_positions = False)
+                    self.C.sheetdisplay.display_subset_of_columns(indexes = self.C.displayed_columns, enable = not self.C.all_columns_displayed,
+                                                                reset_col_positions = False,
+                                                                set_col_positions = False)
+                    self.C.reset_tagged_ids_dropdown()
+                    self.C.reset_tagged_ids_sheet()
+                    self.C.prnt_tree()
+                    self.C.refresh_all_formulas_and_formatting()
+                    self.C.sheetdisplay.refresh()
+                    self.C.stop_work(self.C.set_status_bar())
+            else:
+                self.C.snapshot_ctrl_x_v_del_key()
+                self.C.vs[-1]['cells'][(r, c)] = f"{self.C.sheet[r][c]}"
+                self.status_bar.change_text(f"Replaced {self.C.sheet[r][c]} with {newtext} for {self.C.sheet[r][self.C.ic]} in {self.C.headers[c].name}")
+                self.C.changelog.append((self.C.get_datetime_changelog(),
+                                       self.C.user_name,
+                                       "Edit cell",
+                                       f"ID: {self.C.sheet[r][self.C.ic]} column #{c + 1} named: {self.C.headers[c].name} with type: {self.C.headers[c].type_}",
+                                       f"{self.C.sheet[r][c]}",
+                                       f"{newtext}"))
+                if self.C.headers[c].type_ == "Date Detail":
+                    self.C.sheet[r][c] = self.C.convert_date(newtext, self.C.DATE_FORM)
+                else:
+                    self.C.sheet[r][c] = newtext
+                self.C.disable_paste()
+                self.C.refresh_all_formulas_and_formatting(rows = [r])
+                self.C.refresh_treedisplay_item(self.C.sheet[r][self.C.ic])
+                self.C.sheetdisplay.refresh()
+                self.C.stop_work(self.C.set_status_bar())
+        else:
+            self.status_bar.change_text(f"Could not find an appropriate cell containing {self.find_display.get_my_value()} to replace with {self.rep_display.get_my_value()}")
+
+    def replace_all(self, event = None):
+        if self.C.showing_all_hierarchies:
+            self.status_bar.change_text("Cannot perform action while showing all hierarchies")
+            return
+        ids = self.ids_button.get_checked()
+        dets = self.details_button.get_checked()
+        if not ids and not dets:
+            self.status_bar.change_text("Select a search option, IDs and Parents and/or Details")
+            return
+        search = self.find_display.get_my_value().lower()
+        newtext = self.rep_display.get_my_value()
+        if search == newtext:
+            self.status_bar.change_text("Error: Find value is the same as replace value")
+            return
+        match = self.match_button.get_checked()
+        where = self.where.get_checked()
+        allcols = self.allcols_button.get_checked()
+        if allcols and not self.C.all_columns_displayed:
+            self.C.displayed_columns = list(range(len(self.C.headers)))
+            self.C.all_columns_displayed = True
+            self.C.ss_hiding_cols_button.set_checked(not self.C.all_columns_displayed)
+            self.C.sheetdisplay.display_subset_of_columns(indexes=self.C.displayed_columns,
+                                                      enable=not self.C.all_columns_displayed,
+                                                      reset_col_positions=False)
+            self.C.set_all_col_widths()
+            self.C.disable_paste()
+        showing = {c: i for i, c in enumerate(self.C.displayed_columns)}
+        ind = self.C.indices
+        qic = self.C.ic
+        with_formulas = set(i for i, c in enumerate(self.C.headers) if c.formula)
+        valids = {c: self.C.detail_is_valid_for_col(c, newtext) for c in range(len(self.C.headers))}
+        cells_changed = 0
+        if ids:
+            self.C.snapshot_ctrl_x_v_del_key_id_par()
+        else:
+            self.C.snapshot_ctrl_x_v_del_key()
+        refresh_rows = set()
+        if where:
+            for r, c in self.C.sheetdisplay.get_selected_cells(get_rows = True, get_columns = True, sort_by_row = True, sort_by_column = True):
+                c = self.C.displayed_columns[c]
+                e = self.C.sheet[r][c]
+                if c == qic or c in with_formulas:
+                    continue
+                if not allcols and c not in showing:
+                    continue
+                if ids and c in ind:
+                    elow = e.lower()
+                    if match and elow == search and elow != newtext:
+                        self.C.changelog.append((self.C.get_datetime_changelog(increment_unsaved = False),
+                                               self.C.user_name,
+                                               "Edit cell |",
+                                               f"ID: {self.C.sheet[r][self.C.ic]} column #{c + 1} named: {self.C.headers[c].name} with type: {self.C.headers[c].type_}",
+                                               f"{e}",
+                                               newtext))
+                        if self.C.headers[c].type_ == "Date Detail":
+                            self.C.sheet[r][c] = self.C.convert_date(newtext, self.C.DATE_FORM)
+                        else:
+                            self.C.sheet[r][c] = newtext
+                        cells_changed += 1
+                    elif not match and search in elow and elow != newtext:
+                        newtext2 = case_insensitive_replace(search, newtext, e)
+                        self.C.changelog.append((self.C.get_datetime_changelog(increment_unsaved = False),
+                                               self.C.user_name,
+                                               "Edit cell |",
+                                               f"ID: {self.C.sheet[r][self.C.ic]} column #{c + 1} named: {self.C.headers[c].name} with type: {self.C.headers[c].type_}",
+                                               f"{e}",
+                                               newtext2))
+                        if self.C.headers[c].type_ == "Date Detail":
+                            self.C.sheet[r][c] = self.C.convert_date(newtext2, self.C.DATE_FORM)
+                        else:
+                            self.C.sheet[r][c] = newtext2
+                        cells_changed += 1
+                if dets and c not in ind:
+                    elow = e.lower()
+                    if match and elow == search and elow != newtext and valids[c]:
+                        if not ids:
+                            self.C.vs[-1]['cells'][(r, c)] = f"{e}"
+                            refresh_rows.add(r)
+                        self.C.changelog.append((self.C.get_datetime_changelog(increment_unsaved = False),
+                                               self.C.user_name,
+                                               "Edit cell |",
+                                               f"ID: {self.C.sheet[r][self.C.ic]} column #{c + 1} named: {self.C.headers[c].name} with type: {self.C.headers[c].type_}",
+                                               f"{e}",
+                                               newtext))
+                        if self.C.headers[c].type_ == "Date Detail":
+                            self.C.sheet[r][c] = self.C.convert_date(newtext, self.C.DATE_FORM)
+                        else:
+                            self.C.sheet[r][c] = newtext
+                        cells_changed += 1
+                    elif not match and search in elow and elow != newtext and self.C.detail_is_valid_for_col(c, case_insensitive_replace(search, newtext, e)):
+                        if not ids:
+                            self.C.vs[-1]['cells'][(r, c)] = f"{e}"
+                            refresh_rows.add(r)
+                        newtext2 = case_insensitive_replace(search, newtext, e)
+                        self.C.changelog.append((self.C.get_datetime_changelog(increment_unsaved = False),
+                                               self.C.user_name,
+                                               "Edit cell |",
+                                               f"ID: {self.C.sheet[r][self.C.ic]} column #{c + 1} named: {self.C.headers[c].name} with type: {self.C.headers[c].type_}",
+                                               f"{e}",
+                                               newtext2))
+                        if self.C.headers[c].type_ == "Date Detail":
+                            self.C.sheet[r][c] = self.C.convert_date(newtext2, self.C.DATE_FORM)
+                        else:
+                            self.C.sheet[r][c] = newtext2
+                        cells_changed += 1
+        else:
+            for r, row in enumerate(self.C.sheet):
+                for c, e in enumerate(row):
+                    if c == qic or c in with_formulas:
+                        continue
+                    if not allcols and c not in showing:
+                        continue
+                    if ids and c in ind:
+                        elow = e.lower()
+                        if match and elow == search and elow != newtext:
+                            self.C.changelog.append((self.C.get_datetime_changelog(increment_unsaved = False),
+                                                   self.C.user_name,
+                                                   "Edit cell |",
+                                                   f"ID: {self.C.sheet[r][self.C.ic]} column #{c + 1} named: {self.C.headers[c].name} with type: {self.C.headers[c].type_}",
+                                                   f"{e}",
+                                                   newtext))
+                            if self.C.headers[c].type_ == "Date Detail":
+                                self.C.sheet[r][c] = self.C.convert_date(newtext, self.C.DATE_FORM)
+                            else:
+                                self.C.sheet[r][c] = newtext
+                            cells_changed += 1
+                        elif not match and search in elow and elow != newtext:
+                            newtext2 = case_insensitive_replace(search, newtext, e)
+                            self.C.changelog.append((self.C.get_datetime_changelog(increment_unsaved = False),
+                                                   self.C.user_name,
+                                                   "Edit cell |",
+                                                   f"ID: {self.C.sheet[r][self.C.ic]} column #{c + 1} named: {self.C.headers[c].name} with type: {self.C.headers[c].type_}",
+                                                   f"{e}",
+                                                   newtext2))
+                            if self.C.headers[c].type_ == "Date Detail":
+                                self.C.sheet[r][c] = self.C.convert_date(newtext2, self.C.DATE_FORM)
+                            else:
+                                self.C.sheet[r][c] = newtext2
+                            cells_changed += 1
+                    if dets and c not in ind:
+                        elow = e.lower()
+                        if match and elow == search and elow != newtext and valids[c]:
+                            if not ids:
+                                self.C.vs[-1]['cells'][(r, c)] = f"{e}"
+                                refresh_rows.add(r)
+                            self.C.changelog.append((self.C.get_datetime_changelog(increment_unsaved = False),
+                                                   self.C.user_name,
+                                                   "Edit cell |",
+                                                   f"ID: {self.C.sheet[r][self.C.ic]} column #{c + 1} named: {self.C.headers[c].name} with type: {self.C.headers[c].type_}",
+                                                   f"{e}",
+                                                   newtext))
+                            if self.C.headers[c].type_ == "Date Detail":
+                                self.C.sheet[r][c] = self.C.convert_date(newtext, self.C.DATE_FORM)
+                            else:
+                                self.C.sheet[r][c] = newtext
+                            cells_changed += 1
+                        elif not match and search in elow and elow != newtext and self.C.detail_is_valid_for_col(c, case_insensitive_replace(search, newtext, e)):
+                            if not ids:
+                                self.C.vs[-1]['cells'][(r, c)] = f"{e}"
+                                refresh_rows.add(r)
+                            newtext2 = case_insensitive_replace(search, newtext, e)
+                            self.C.changelog.append((self.C.get_datetime_changelog(increment_unsaved = False),
+                                                   self.C.user_name,
+                                                   "Edit cell |",
+                                                   f"ID: {self.C.sheet[r][self.C.ic]} column #{c + 1} named: {self.C.headers[c].name} with type: {self.C.headers[c].type_}",
+                                                   f"{e}",
+                                                   newtext2))
+                            if self.C.headers[c].type_ == "Date Detail":
+                                self.C.sheet[r][c] = self.C.convert_date(newtext2, self.C.DATE_FORM)
+                            else:
+                                self.C.sheet[r][c] = newtext2
+                            cells_changed += 1
+        self.C.disable_paste()
+        if not cells_changed:
+            self.C.vp -= 1
+            self.C.set_undo_label()
+            self.C.vs.pop()
+            self.C.sheetdisplay.refresh()
+            self.C.stop_work(self.C.set_status_bar())
+            self.status_bar.change_text(f"Could not find an appropriate cell containing {self.find_display.get_my_value()} to replace with {self.rep_display.get_my_value()}")
+            return
+        if ids:
+            self.C.nodes = {}
+            self.C.clear_copied_details()
+            self.C.auto_sort_nodes_bool.set(True)
+            self.C.build_tree_start(add_warnings = False)
+            self.C.fix_associate_sort_edit_cells()
+            self.C.rns = {row[self.C.ic].lower(): i for i, row in enumerate(self.C.sheet)}
+            self.C.sheetdisplay.data_reference(newdataref = self.C.sheet, reset_col_positions = False)
+            self.C.sheetdisplay.display_subset_of_columns(indexes = self.C.displayed_columns, enable = not self.C.all_columns_displayed,
+                                                        reset_col_positions = False,
+                                                        set_col_positions = False)
+            self.C.refresh_all_formulas_and_formatting()
+            self.C.sheetdisplay.set_all_row_heights()
+            self.C.reset_tagged_ids_dropdown()
+            self.C.reset_tagged_ids_sheet()
+            self.C.prnt_tree()
+        else:
+            self.C.refresh_all_formulas_and_formatting(rows = refresh_rows)
+            for rn in refresh_rows:
+                self.C.refresh_treedisplay_item(self.C.sheet[rn][self.C.ic])
+        if cells_changed > 1:
+            self.C.changelog.append((self.C.get_datetime_changelog(),
+                                   self.C.user_name,
+                                   f"Edit {cells_changed} cells",
+                                   "",
+                                   "",
+                                   ""))
+        else:
+            self.C.changelog_singular("Edit cell")
+        self.status_bar.change_text(f"Replaced {cells_changed} cells containing {self.find_display.get_my_value()} with {self.rep_display.get_my_value()}")
+        self.C.sheetdisplay.refresh()
+        self.C.stop_work(self.C.set_status_bar())
+        
+    def tv_confirm(self,event=None):
+        self.option1 = self.id_or_detail.displayed.get()
+        self.option2 = self.match_option.displayed.get()
+        if self.option1 == "Find ID":
+            self.result = "".join(self.tv_find_entry.get_my_value().strip().split()).lower()
+        elif self.option1 == "Find detail":
+            self.result = " ".join(self.tv_find_entry.get_my_value().strip().split()).lower()
+        id_or_detail = self.option1
+        text_or_match = self.option2
+        qres = self.result
+        found = False
+        if id_or_detail == "Find ID":
+            if text_or_match == "Non-exact match":
+                for row in self.C.sheet:
+                    if qres in row[self.C.ic].lower():
+                        found = True
+                        break
+            elif text_or_match == "Exact match":
+                for row in self.C.sheet:
+                    if qres == row[self.C.ic].lower():
+                        found = True
+                        break
+        elif id_or_detail == "Find detail":
+            if text_or_match == "Non-exact match":
+                for row in self.C.sheet:
+                    if found == True:
+                        break
+                    for c in row:
+                        if qres in c.lower():
+                            found = True
+                            break
+            elif text_or_match == "Exact match":
+                for row in self.sheet:
+                    if found == True:
+                        break
+                    for c in row:
+                        if qres == c.lower():
+                            found = True
+                            break
+        if found:
+            self.destroy()
+            if self.C.mirror_var == 0:
+                self.C.toggle_mirror()
+            if not self.C.showing_all_hierarchies:
+                self.C.view_all_hiers()
+            if id_or_detail == "Find ID":
+                if text_or_match == "Non-exact match":
+                    self.C.search_for_ID(qres,False)
+                elif text_or_match == "Exact match":
+                    self.C.search_for_ID(qres,True)
+            elif id_or_detail == "Find detail":
+                if text_or_match == "Non-exact match":
+                    self.C.search_for_detail(qres,False)
+                elif text_or_match == "Exact match":
+                    self.C.search_for_detail(qres,True)
+        else:
+            self.status_bar.change_text("No results found   ")
+        
+    def enter_ss_sel(self,event=None):
+        self.tv_find_entry.set_my_value(self.ss_sel)
+        
+    def cancel(self,event=None):
+        self.destroy()
+
+
+class column_manager_popup(tk.Toplevel):
+    def __init__(self,C):
+        tk.Toplevel.__init__(self,C,width="1",height="1")
+        self.protocol("WM_DELETE_WINDOW",self.USER_HAS_CLOSED_WINDOW)
+        self.withdraw()
+        self.tk.call("wm","iconphoto",self._w,tk.PhotoImage(format="gif",data=top_left_icon))
+        self.title("Column manager - Green column is Treeview Label - Click the X button or press escape to go back")
+        self.C = C
+        self.config(bg = theme_bg(self.C.C.theme))
+        self.wm_transient(self.C)
+        self.focus_force()
+        self.grab_set()
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_rowconfigure(0,weight=1)
+        self.new_frame = None
+        self.window_destroyed = False
+        self.total = len(self.C.headers)
+        self.cut_col = None
+        self.col_sel = None
+        self.cond_sel = None
+        self.actions = set()
+
+        self.ss_rc_popup_menu_cols = tk.Menu(self,tearoff=0,**menu_kwargs)
+        self.ss_rc_popup_menu_cols_add_menu = tk.Menu(self,tearoff=0,**menu_kwargs)
+        self.ss_rc_popup_menu_cols_add_menu.add_command(label="Add Detail Column",
+                                               command=self.popup_add_col,**menu_kwargs)
+        self.ss_rc_popup_menu_cols_add_menu.add_separator()
+        self.ss_rc_popup_menu_cols_add_menu.add_command(label="Add Hierarchy",
+                                               command=self.popup_add_hier_col,**menu_kwargs)
+        self.ss_rc_popup_menu_cols.add_cascade(label="Add",
+                                               menu=self.ss_rc_popup_menu_cols_add_menu,**menu_kwargs)
+        
+        self.ss_rc_popup_menu_cols.add_separator()
+        self.ss_rc_popup_menu_cols_delete_menu = tk.Menu(self,tearoff=0,**menu_kwargs)
+        self.ss_rc_popup_menu_cols_delete_menu.add_command(label="Delete Column",
+                                               command=self.popup_del_col,**menu_kwargs)
+        self.ss_rc_popup_menu_cols_delete_menu.add_command(label="Delete Formula",
+                                               command=self.del_formula,**menu_kwargs)
+        self.ss_rc_popup_menu_cols_delete_menu.add_command(label="Delete Validation",
+                                               command=self.del_validation,**menu_kwargs)
+        self.ss_rc_popup_menu_cols.add_cascade(label="Delete",
+                                               menu=self.ss_rc_popup_menu_cols_delete_menu,**menu_kwargs)
+
+        self.ss_rc_popup_menu_cols.add_separator()
+        self.ss_rc_popup_menu_cols_edit_menu = tk.Menu(self,tearoff=0,**menu_kwargs)
+        self.ss_rc_popup_menu_cols_edit_menu.add_command(label="Edit Formula",
+                                               command=self.popup_edit_formula,**menu_kwargs)
+        self.ss_rc_popup_menu_cols_edit_menu.add_command(label="Edit Validation",
+                                               command=self.edit_validation,**menu_kwargs)
+        self.ss_rc_popup_menu_cols_edit_menu.add_command(label="Edit Formatting",
+                                               command=self.go_to_formatting_view,**menu_kwargs)
+        self.ss_rc_popup_menu_cols.add_cascade(label="Edit",
+                                               menu=self.ss_rc_popup_menu_cols_edit_menu,**menu_kwargs)
+        
+        self.ss_rc_popup_menu_cols.add_separator()
+        self.ss_rc_coltypes_menu = tk.Menu(self,tearoff=0,**menu_kwargs)
+        self.ss_rc_coltypes_menu.add_command(label="Text Detail",
+                                             command=self.change_coltype_text,**menu_kwargs)
+        self.ss_rc_coltypes_menu.add_command(label="Numerical Detail",
+                                             command=self.change_coltype_numerical,**menu_kwargs)
+        self.ss_rc_coltypes_menu.add_command(label="Date Detail",
+                                             command=self.change_coltype_date,**menu_kwargs)
+        self.ss_rc_popup_menu_cols.add_cascade(label="Change column type",
+                                               menu=self.ss_rc_coltypes_menu,**menu_kwargs)
+
+        self.ss_rc_popup_menu_cols.add_separator()
+        self.ss_rc_popup_menu_cols.add_command(label="Cut column",
+                                               command=self.popup_cut_col,**menu_kwargs)
+        self.ss_rc_popup_menu_cols.add_separator()
+        self.ss_rc_popup_menu_cols.add_command(label="Paste columns",
+                                               command=self.popup_paste_col,
+                                               state="disabled",**menu_kwargs)
+        self.ss_rc_popup_menu_cols.add_separator()
+        self.ss_rc_popup_menu_cols.add_command(label="Set as Treeview label",
+                                               command=self.set_tv_label_col,**menu_kwargs)
+        self.ss_rc_popup_menu_cols.add_separator()
+        self.ss_rc_popup_menu_cols.add_command(label="Rename column",
+                                               command=self.popup_rename_col,**menu_kwargs)
+
+        self.ss_rc_popup_menu_end = tk.Menu(self,tearoff=0,**menu_kwargs)
+        self.ss_rc_popup_menu_end.add_command(label="Add Detail column",
+                                              command=self.popup_add_col,**menu_kwargs)
+        self.ss_rc_popup_menu_end.add_separator()
+        self.ss_rc_popup_menu_end.add_command(label="Add Hierarchy",
+                                              command=self.popup_add_hier_col,**menu_kwargs)
+        self.ss_rc_popup_menu_end.add_separator()
+        self.ss_rc_popup_menu_end.add_command(label="Paste columns",
+                                              command=self.popup_paste_col,
+                                              state="disabled",**menu_kwargs)
+        
+        self.ss_rc_popup_menu_cols_multiple = tk.Menu(self,tearoff=0,**menu_kwargs)
+        self.ss_rc_popup_menu_cols_multiple.add_command(label="Cut columns",
+                                                           command=self.popup_cut_col,**menu_kwargs)
+        self.ss_rc_popup_menu_cols_multiple.add_separator()
+        self.ss_rc_popup_menu_cols_multiple.add_command(label="Delete columns",
+                                                           command=self.popup_del_col,**menu_kwargs)
+
+        self.cols_view = Sheet(self,
+                               theme = self.C.C.theme,
+                               row_drag_and_drop_perform = False,
+                               header_font = ("Calibri", 13, "normal"),
+                                  align="center",
+                                  header_align="center",
+                                  row_index_align="center",
+                                  row_index_width=190,
+                                  headers=["Column Name","Type","Formula","Formatting","Validation"])
+
+        self.headers = [[h.name,h.type_,h.formula,f"{len(h.formatting)}","" if h.formula else ", ".join(h.validation)] for h in self.C.headers]
+
+        for i in range(6):
+            self.cols_view.highlight_cells(row = self.C.tv_label_col, column = i, bg = "#8cba66", fg = theme_fg(self.C.C.theme))
+        self.cols_view.highlight_cells(row = self.C.tv_label_col, canvas = "row_index", bg = "#8cba66", fg = theme_fg(self.C.C.theme))
+        
+        self.cols_view.data_reference(newdataref=self.headers)
+        self.cols_view.basic_bindings(True)
+        self.cols_view.enable_bindings(("single",
+                                        "drag_select",
+                                        "row_drag_and_drop",
+                                        "column_width_resize",
+                                        "double_click_column_resize",
+                                        "row_select",
+                                        "arrowkeys"))
+        self.cols_view.extra_bindings([("row_index_drag_drop",self.snapshot_drag_cols_col_manager)])
+                                          
+        self.cols_view.grid(row=0,column=0,sticky="nswe")
+        self.cols_view.set_column_widths(column_widths=[340,150,200,100,350])
+        
+        self.cols_view.bind(get_platform_rc_binding(), self.cols_view_rc)
+        self.cols_view.bind("<Double-Button-1>",self.cols_view_double_b1)
+        self.cols_view.bind("<Delete>",self.popup_del_col)
+
+        # ==================== CONDITIONAL FORMATTING FRAME ====================
+        self.displayed_colors_dct = {"Yellow": "yellow",
+                                     "Red, normal": "firebrick1",
+                                     "Brown": "#734021",
+                                     "Orange": "orange",
+                                     "Green, bright": "lawn green",
+                                     "Green, dark": "forest green",
+                                     "Red, bright": "red",
+                                     "Turquoise": "turquoise",
+                                     "Purple": "DarkOrchid1",
+                                     "Pink": "orchid1",
+                                     "Red, soft": "salmon1",
+                                     "Blue, bright": "cyan",
+                                     'Scale 1 (green)': "#509f56",
+                                     'Scale 2': "#64a85b",
+                                     'Scale 3': "#78b160",
+                                     'Scale 4': "#8cba66",
+                                     'Scale 5': "#a0c36c",
+                                     'Scale 6': "#b4cc71",
+                                     'Scale 7': "#c8d576",
+                                     'Scale 8': "#dcde7c",
+                                     'Scale 9': "#f0e782",
+                                     'Scale 10 (yellow)': "#ffec87",
+                                     'Scale 11': "#ffe182",
+                                     'Scale 12': "#ffdc7d",
+                                     'Scale 13': "#ffd77b",
+                                     'Scale 14': "#ffc873",
+                                     'Scale 15': "#ffb469",
+                                     'Scale 16': "#fea05f",
+                                     'Scale 17': "#fc8c55",
+                                     'Scale 18': "#fb784b",
+                                     'Scale 19': "#fa6441",
+                                     'Scale 20 (red)': "#f85037"}
+        self.scale_colors = ("#509f56","#64a85b","#78b160","#8cba66","#a0c36c","#b4cc71","#c8d576",
+                             "#dcde7c","#f0e782","#ffec87","#ffe182","#ffdc7d","#ffd77b","#ffc873",
+                             "#ffb469","#fea05f","#fc8c55","#fb784b","#fa6441","#f85037")
+        self.internal_colors = {v: k for k,v in self.displayed_colors_dct.items()}
+        ak = lambda key: [int(c) if c.isdigit() else c.lower() for c in re.split("([0-9]+)",key)]
+        self.displayed_colors = sorted(self.displayed_colors_dct.keys(),key=ak)
+        
+        self.formatting_view_FRAME = frame(self, theme = self.C.C.theme)
+        self.formatting_view_FRAME.grid_rowconfigure(1,weight=1)
+        self.formatting_view_FRAME.grid_columnconfigure(1,weight=1)
+
+        self.formatting_view_rc_menu = tk.Menu(self,tearoff=0,**menu_kwargs)
+        self.formatting_view_rc_menu.add_command(label="Add condition",
+                                                 command=self.add_condition,**menu_kwargs)
+        self.formatting_view_rc_menu.add_separator()
+        self.formatting_view_rc_menu.add_command(label="Edit condition",
+                                                 command=self.edit_condition,**menu_kwargs)
+        self.formatting_view_rc_menu.add_separator()
+        self.formatting_view_rc_menu.add_command(label="Del condition",
+                                                 command=self.del_condition,**menu_kwargs)
+        self.formatting_view_rc_menu.add_separator()
+        self.formatting_view_rc_menu.add_command(label="Del existing/add num scale",
+                                                 command=lambda: self.add_auto_conditions("num"),**menu_kwargs)
+        self.formatting_view_rc_menu.add_separator()
+        self.formatting_view_rc_menu.add_command(label="Del existing/add date scale",
+                                                 command=lambda: self.add_auto_conditions("date"),
+                                                 state="disabled",**menu_kwargs)
+        self.col_name_display = readonly_entry_with_scrollbar(self.formatting_view_FRAME, theme = self.C.C.theme)
+        self.col_name_display.grid(row=0,column=1,columnspan=2,sticky="nswe",pady=0,padx=0)
+        self.formatting_view_GO_BACK = button(self.formatting_view_FRAME,text="⯇\nGO\nBACK\n⯇",style="EF.Std.TButton",command=self.go_to_cols_view)
+        self.formatting_view_GO_BACK.grid(row=0,column=0,rowspan=4,sticky="nswe")
+
+        self.formatting_view = Sheet(self.formatting_view_FRAME,
+                                     theme = self.C.C.theme,
+                                      align="center",
+                                     row_drag_and_drop_perform = False,
+                                      header_align="center",
+                                      row_index_align="center",
+                                      header_font = ("Calibri", 13, "normal"),
+                                      row_index_width=190,
+                                      headers=["Condition","Color"])
+        self.formatting_view.basic_bindings(True)
+        self.formatting_view.enable_bindings(("single",
+                                              "row_drag_and_drop",
+                                              "drag_select",
+                                              "column_width_resize",
+                                              "double_click_column_resize",
+                                              "row_select",
+                                              "arrowkeys"))
+        self.formatting_view.extra_bindings([("row_index_drag_drop",self.formatting_view_drag)])
+        self.formatting_view.set_column_widths(column_widths=[500,100])
+        self.formatting_view.grid(row=1,column=1,sticky="nswe")
+        self.formatting_view.bind(get_platform_rc_binding(), self.formatting_view_rc)
+        self.formatting_view.bind("<Double-Button-1>",self.formatting_view_double_b1)
+        self.formatting_view.bind("<Delete>",self.del_condition)
+        self.cols_view.bind("<Control-Z>",self.undo)
+        self.cols_view.bind("<Control-z>",self.undo)
+        self.bind("<Escape>",self.USER_HAS_CLOSED_WINDOW)
+        center(self,1200,720)
+        self.deiconify()
+        self.wait_window()
+
+    def set_tv_label_col(self,event=None):
+        self.C.tv_label_col = int(self.col_sel)
+        self.repopulate()
+
+    def USER_HAS_CLOSED_WINDOW(self,callback=None):
+        self.window_destroyed = True
+        try:
+            self.new_frame.destroy()
+        except:
+            pass
+        self.destroy()
+
+    def go_to_formatting_view(self,event=None):
+        self.cols_view.grid_forget()
+        self.formatting_view_FRAME.grid(row=0,column=0,sticky="nswe")
+        if self.C.headers[self.col_sel].type_ in ("ID", "Parent", "Text Detail"):
+            self.formatting_view_rc_menu.entryconfig("Del existing/add date scale",state="disabled")
+            self.formatting_view_rc_menu.entryconfig("Del existing/add num scale",state="disabled")
+        elif self.C.headers[self.col_sel].type_ == "Numerical Detail":
+            self.formatting_view_rc_menu.entryconfig("Del existing/add num scale",state="normal")
+            self.formatting_view_rc_menu.entryconfig("Del existing/add date scale",state="disabled")
+        elif self.C.headers[self.col_sel].type_ == "Date Detail":
+            self.formatting_view_rc_menu.entryconfig("Del existing/add num scale",state="normal")
+            self.formatting_view_rc_menu.entryconfig("Del existing/add date scale",state="normal")
+        self.col_name_display.set_my_value("".join(("Column #",str(self.col_sel+1)," named: ",self.C.headers[self.col_sel].name," with type: ",
+                                           self.C.headers[self.col_sel].type_,"   ")))
+        self.populate_formatting_view(col=self.col_sel)
+
+    def go_to_cols_view(self,event=None):
+        self.repopulate()
+        self.cols_view.grid(row=0,column=0,sticky="nswe")
+        self.formatting_view_FRAME.grid_forget()
+
+    def populate_formatting_view(self,event=None,col=0):
+        self.formatting_view.deselect("all")
+        self.formatting_view.dehighlight_cells(all_=True,redraw=False)
+        self.formatting_view.dehighlight_cells(canvas="row_index",all_=True,redraw=False)
+        self.formatting_view.data_reference(newdataref=[[cond, self.internal_colors[color]] for cond,color in self.C.headers[col].formatting])
+        for i,(cond,color) in enumerate(self.C.headers[col].formatting):
+            self.formatting_view.highlight_cells(row = i, column = 1, bg = color, fg = "black")
+        self.formatting_view.set_column_widths(column_widths=[650,200])
+        self.formatting_view.refresh()
+
+    def enable_formatting_view_treeview(self):
+        self.formatting_view_GO_BACK.config(state="normal")
+        self.formatting_view.bind(get_platform_rc_binding(), self.formatting_view_rc)
+        self.formatting_view.bind("<Double-Button-1>",self.formatting_view_double_b1)
+        self.formatting_view.bind("<Delete>",self.del_condition)
+        self.formatting_view.basic_bindings(True)
+        self.formatting_view.enable_bindings(("single",
+                                            "row_drag_and_drop",
+                                            "column_width_resize",
+                                            "double_click_column_resize",
+                                            "row_select",
+                                            "arrowkeys"))
+        self.formatting_view.extra_bindings([("row_index_drag_drop",self.formatting_view_drag)])
+        
+    def disable_formatting_view_treeview(self):
+        self.formatting_view_GO_BACK.config(state="disabled")
+        self.formatting_view.unbind(get_platform_rc_binding())
+        self.formatting_view.unbind("<Double-Button-1>")
+        self.formatting_view.unbind("<Delete>")
+        self.formatting_view.basic_bindings(False)
+        self.formatting_view.disable_bindings(("single",
+                                            "row_drag_and_drop",
+                                            "column_width_resize",
+                                            "double_click_column_resize",
+                                            "row_select",
+                                            "arrowkeys"))
+        self.formatting_view.extra_bindings([("row_index_drag_drop",None)])
+
+    def enable_cols_view_treeview(self):
+        self.cols_view.bind(get_platform_rc_binding(), self.cols_view_rc)
+        self.cols_view.bind("<Double-Button-1>",self.cols_view_double_b1)
+        self.cols_view.bind("<Delete>",self.popup_del_col)
+        self.cols_view.basic_bindings(True)
+        self.cols_view.enable_bindings(("single",
+                                        "drag_select",
+                                        "row_drag_and_drop",
+                                        "column_width_resize",
+                                        "double_click_column_resize",
+                                        "row_select",
+                                        "arrowkeys"))
+        self.cols_view.extra_bindings([("row_index_drag_drop",self.snapshot_drag_cols_col_manager)])
+
+    def formatting_view_drag(self, selected_rows, r):
+        r = int(r)
+        rowsiter = list(selected_rows)
+        rowsiter.sort()
+        stins = rowsiter[0]
+        endins = rowsiter[-1] + 1
+        totalrows = len(rowsiter)
+        if stins > r:
+            self.C.headers[self.col_sel].formatting = (self.C.headers[self.col_sel].formatting[:r] +
+                                                          self.C.headers[self.col_sel].formatting[stins:stins + totalrows] +
+                                                          self.C.headers[self.col_sel].formatting[r:stins] +
+                                                          self.C.headers[self.col_sel].formatting[stins + totalrows:])
+        else:
+            self.C.headers[self.col_sel].formatting = (self.C.headers[self.col_sel].formatting[:stins] +
+                                                          self.C.headers[self.col_sel].formatting[stins + totalrows:r + 1] +
+                                                          self.C.headers[self.col_sel].formatting[stins:stins + totalrows] +
+                                                          self.C.headers[self.col_sel].formatting[r + 1:])
+        self.populate_formatting_view(col = self.col_sel)
+
+    def snapshot_drag_cols_col_manager(self, selected_cols, c):
+        self.C.snapshot_drag_cols_col_manager(selected_cols, c)
+        self.repopulate()
+
+    def undo(self, event = None):
+        if self.C.vs:
+            self.C.undo(col_manager = True)
+            self.repopulate()
+
+    def repopulate(self):
+        self.cols_view.deselect("all")
+        self.cols_view.dehighlight_cells(all_=True,redraw=False)
+        self.cols_view.dehighlight_cells(canvas="row_index",all_=True,redraw=False)
+        self.headers = [[h.name,h.type_,h.formula,f"{len(h.formatting)}","" if h.formula else ", ".join(h.validation)] for h in self.C.headers]
+        for i in range(6):
+            self.cols_view.highlight_cells(row = self.C.tv_label_col, column = i, bg = "#8cba66", fg = theme_fg(self.C.C.theme))
+        self.cols_view.highlight_cells(row = self.C.tv_label_col, canvas = "row_index", bg = "#8cba66", fg = theme_fg(self.C.C.theme))
+        self.cols_view.data_reference(newdataref=self.headers)
+        self.total = len(self.C.headers)
+        self.cols_view.set_column_widths(column_widths=[340,150,200,100,350])
+        self.cols_view.refresh()
+        self.cols_view.focus_set()
+
+    def disable_cols_view_treeview(self):
+        self.cols_view.unbind(get_platform_rc_binding())
+        self.cols_view.unbind("<Double-Button-1>")
+        self.cols_view.unbind("<Delete>")
+        self.cols_view.basic_bindings(False)
+        self.cols_view.disable_bindings(("single",
+                                        "drag_select",
+                                        "row_drag_and_drop",
+                                        "column_width_resize",
+                                        "double_click_column_resize",
+                                        "row_select",
+                                        "arrowkeys"))
+        self.cols_view.extra_bindings([("row_index_drag_drop",None)])
+        
+    def change_coltype_text(self,event=None):
+        if self.C.headers[self.col_sel].formula:
+            self.disable_cols_view_treeview()
+            self.new_frame = error_frame(self,"Cannot change column type when column has a formula.", theme = self.C.C.theme)
+            self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            self.enable_cols_view_treeview()
+            return
+        if self.C.headers[self.col_sel].cols:
+            self.disable_cols_view_treeview()
+            self.new_frame = error_frame(self,
+                                         "".join(("Cannot change column type when it's involved in a formula. These are the columns which have formulas which involve this column: ",
+                                                       " | ".join([str(c + 1) for c in self.C.headers[self.col_sel].cols]),"   ")),
+                                         theme = self.C.C.theme)
+            self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            self.enable_cols_view_treeview()
+            return
+        self.C.snapshot_col_type_text(int(self.col_sel))
+        self.C.headers[self.col_sel].type_ = "Text Detail"
+        if isinstance(self.C.check_validation_validity(self.col_sel,",".join(self.C.headers[self.col_sel].validation)),str):
+            self.C.headers[self.col_sel].validation = []
+        if self.C.check_formula_validity(self.col_sel,str(self.C.headers[self.col_sel].formula)).startswith("Error:"):
+            self.C.headers[self.col_sel].formula = ""
+        self.C.headers[self.col_sel].formatting = []
+        self.repopulate()
+        self.actions.add("coltype")
+        #self.enable_cols_view_treeview()
+        self.cols_view.select_row(str(self.col_sel))
+    
+    def change_coltype_numerical(self,event=None):
+        self.disable_cols_view_treeview()
+        if self.C.headers[self.col_sel].formula:
+            self.new_frame = error_frame(self,"Cannot change column type when column has a formula.", theme = self.C.C.theme)
+            self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            self.enable_cols_view_treeview()
+            return
+        if self.C.headers[self.col_sel].cols:
+            self.new_frame = error_frame(self,"".join(("Cannot change column type when it's involved in a formula. These are the columns which have formulas which involve this column: ",
+                                                       " | ".join([str(c + 1) for c in self.C.headers[self.col_sel].cols]),"   ")), theme = self.C.C.theme)
+            self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            self.enable_cols_view_treeview()
+            return
+        self.new_frame = askconfirm_frame(self,"".join(("WARNING - This will delete any non-numerical cell entry in this column. Change ",self.C.headers[self.col_sel].name," column type to NUMERICAL   ")),
+                                          bgcolor="yellow",fgcolor="black", theme = self.C.C.theme)
+        self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+        self.bind("<Return>",self.new_frame.confirm)
+        self.new_frame.wait_window()
+        if self.window_destroyed:
+            return
+        self.unbind("<Return>")
+        if self.new_frame.boolean == False:
+            self.enable_cols_view_treeview()
+            return
+        self.C.snapshot_col_type_num_date(int(self.col_sel),"Numerical Detail")
+        self.C.headers[self.col_sel].type_ = "Numerical Detail"
+        self.C.change_coltype_numerical(self.col_sel)
+        validation = self.C.check_validation_validity(self.col_sel,",".join(self.C.headers[self.col_sel].validation))
+        if isinstance(validation,str):
+            self.C.headers[self.col_sel].validation = []
+        else:
+            self.C.headers[self.col_sel].validation = validation
+        if self.C.check_formula_validity(self.col_sel,str(self.C.headers[self.col_sel].formula)).startswith("Error:"):
+            self.C.headers[self.col_sel].formula = ""
+        self.C.headers[self.col_sel].formatting = [tup for tup in self.C.headers[self.col_sel].formatting
+                                                   if not self.C.check_condition_validity(self.col_sel,tup[0]).startswith("Error:")]
+        self.repopulate()
+        self.actions.add("coltype")
+        self.enable_cols_view_treeview()
+        self.cols_view.select_row(str(self.col_sel))
+    
+    def change_coltype_date(self,event=None):
+        self.disable_cols_view_treeview()
+        if self.C.headers[self.col_sel].formula:
+            self.new_frame = error_frame(self,"Cannot change column type when column has a formula.", theme = self.C.C.theme)
+            self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            self.enable_cols_view_treeview()
+            return
+        if self.C.headers[self.col_sel].cols:
+            self.new_frame = error_frame(self,"".join(("Cannot change column type when it's involved in a formula. These are the columns which have formulas which involve this column: ",
+                                                       " | ".join(["C" + str(c + 1) for c in self.C.headers[self.col_sel].cols]),"   ")), theme = self.C.C.theme)
+            self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            self.enable_cols_view_treeview()
+            return
+        self.new_frame = askconfirm_frame(self,"".join(("WARNING - This will delete any non-date format cell entry in this column. Change ",self.C.headers[self.col_sel].name," column type to DATE   ")),
+                                          bgcolor="yellow",fgcolor="black", theme = self.C.C.theme)
+        self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+        self.bind("<Return>",self.new_frame.confirm)
+        self.new_frame.wait_window()
+        if self.window_destroyed:
+            return
+        self.unbind("<Return>")
+        if self.new_frame.boolean == False:
+            self.enable_cols_view_treeview()
+            return
+        self.C.snapshot_col_type_num_date(int(self.col_sel),"Date Detail")
+        self.C.headers[self.col_sel].type_ = "Date Detail"
+        self.C.change_coltype_date(self.col_sel,detect_date_form=True)
+        if isinstance(self.C.check_validation_validity(self.col_sel,",".join(self.C.headers[self.col_sel].validation)),str):
+            self.C.headers[self.col_sel].validation = []
+        if self.C.check_formula_validity(self.col_sel,str(self.C.headers[self.col_sel].formula)).startswith("Error:"):
+            self.C.headers[self.col_sel].formula = ""
+        self.C.headers[self.col_sel].formatting = [tup for tup in self.C.headers[self.col_sel].formatting
+                                                   if not self.C.check_condition_validity(self.col_sel,tup[0]).startswith("Error:")]
+        self.repopulate()
+        self.actions.add("coltype")
+        self.enable_cols_view_treeview()
+        self.cols_view.select_row(str(self.col_sel))
+
+    def add_col_to_formula(self,event=None):
+        column = self.cols_view.identify_row(event, allow_end = False)
+        if column is not None:
+            column = int(column)
+            if self.C.headers[self.stored_selected_col].type_ == "Text Detail":
+                self.new_frame.formula_display.my_entry.insert("end",f"c{column + 1}")
+                self.new_frame.formula_display.my_entry.focus_set()
+            elif column != self.C.ic and column not in set(self.C.hiers):
+                self.new_frame.formula_display.my_entry.insert("end",f"c{column + 1}")
+                self.new_frame.formula_display.my_entry.focus_set()
+        return "break"
+
+    def del_formula(self,event=None):
+        self.C.snapshot_edit_formula(int(self.col_sel),"")
+        if self.C.headers[self.col_sel].type_ == "Text Detail":
+            for idx in {int("".join(re.findall("([0-9]+)",form_col))) - 1 for form_col in re.split('("[^"]*"|\+)',self.C.headers[self.col_sel].formula) if form_col.startswith(("c","C"))}:
+                try:
+                    self.C.headers[idx].cols.discard(self.col_sel)
+                except:
+                    pass
+        else:
+            old_formula_col_indexes = {int("".join(re.findall("([0-9]+)",form_col))) - 1 for form_col in re.findall("([cC][0-9]+)",self.C.headers[self.col_sel].formula)}
+            for idx in old_formula_col_indexes:
+                try:
+                    self.C.headers[idx].cols.discard(self.col_sel)
+                except:
+                    pass
+        self.C.headers[self.col_sel].formula = ""
+        self.repopulate()
+        self.actions.add("formula")
+
+    def del_validation(self,event=None):
+        if [] != self.C.headers[self.col_sel].validation:
+            self.C.snapshot_edit_validation(self.col_sel, [])
+        self.C.headers[self.col_sel].validation = []
+        self.repopulate()
+        self.cols_view.select_row(str(self.col_sel))
+
+    def edit_validation(self,event=None):
+        if self.C.headers[self.col_sel].formula:
+            return
+        self.disable_cols_view_treeview()
+        self.new_frame = edit_validation_frame(self,
+                                               self.C.headers[self.col_sel].type_,
+                                               "".join(("Column #",str(self.col_sel+1)," named:  ",self.C.headers[self.col_sel].name,"   ")),
+                                               self.C.headers[self.col_sel].validation,
+                                               theme = self.C.C.theme)
+        self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+        self.bind("<Return>",self.new_frame.confirm)
+        self.new_frame.wait_window()
+        if self.window_destroyed:
+            return
+        self.unbind("<Return>")
+        if self.new_frame.result == False:
+            self.enable_cols_view_treeview()
+            return
+        if self.new_frame.new_validation:
+            validation = self.C.check_validation_validity(self.col_sel,self.new_frame.new_validation)
+            if isinstance(validation,str):
+                self.new_frame = error_frame(self,"".join((" ",validation,"     see 'Help' under the 'File' menu for instructions on validation in Tree Surgeon   ")), theme = self.C.C.theme)
+                self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+                self.bind("<Return>",self.new_frame.confirm)
+                self.new_frame.wait_window()
+                if self.window_destroyed:
+                    return
+                self.unbind("<Return>")
+                self.enable_cols_view_treeview()
+                return
+            self.new_frame = askconfirm_frame(self,
+                                              "".join(("WARNING - This will overwrite any invalid cells in this column. Set validation for ",
+                                                       self.C.headers[self.col_sel].name,"  ")),
+                                              confirm_text="Continue",
+                                              bgcolor="yellow",fgcolor="black", theme = self.C.C.theme)
+            self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            if self.new_frame.boolean == False:
+                self.enable_cols_view_treeview()
+                return
+        else:
+            validation = []
+        if validation == self.C.headers[self.col_sel].validation:
+            self.enable_cols_view_treeview()
+            return
+        self.C.snapshot_edit_validation(self.col_sel, validation)
+        self.C.headers[self.col_sel].validation = validation
+        if validation:
+            self.C.apply_validation_to_col(self.col_sel)
+        self.repopulate()
+        self.enable_cols_view_treeview()
+        self.cols_view.select_row(str(self.col_sel))
+
+    def popup_edit_formula(self,event=None):
+        if self.C.headers[self.col_sel].validation:
+            return
+        self.disable_cols_view_treeview()
+        self.stored_selected_col = int(self.col_sel)
+        if self.C.headers[self.col_sel].cols:
+            self.new_frame = error_frame(self,
+                                         "".join(("Cannot edit column formula when it's involved in a formula. These are the columns which have formulas which involve this column: ",
+                                         " | ".join(["C" + str(c + 1) for c in self.C.headers[self.col_sel].cols]),"   ")), theme = self.C.C.theme)
+            self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            self.enable_cols_view_treeview()
+            return
+        self.new_frame = edit_formula_frame(self,
+                                            "".join(("Column #",str(self.col_sel+1)," named:  ",self.C.headers[self.col_sel].name,"   ")),
+                                            self.C.headers[self.col_sel].formula,
+                                            self.C.headers[self.col_sel].type_,
+                                            self.C.headers[self.col_sel].formula_only_apply_if_cols,
+                                            theme = self.C.C.theme)
+        self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+        self.bind("<Return>",self.new_frame.confirm)
+        self.cols_view.bind("<1>",self.add_col_to_formula)
+        self.new_frame.wait_window()
+        if self.window_destroyed:
+            return
+        self.unbind("<Return>")
+        self.cols_view.unbind("<1>")
+        if self.new_frame.result == False:
+            self.enable_cols_view_treeview()
+            return
+        if self.new_frame.new_formula:
+            formula = self.C.check_formula_validity(self.col_sel,self.new_frame.new_formula)
+            if formula.startswith("Error:"):
+                self.new_frame = error_frame(self,"".join((" ",formula,"     see 'Help' under the 'File' menu for instructions on column formulas in Tree Surgeon   ")), theme = self.C.C.theme)
+                self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+                self.bind("<Return>",self.new_frame.confirm)
+                self.new_frame.wait_window()
+                if self.window_destroyed:
+                    return
+                self.unbind("<Return>")
+                self.enable_cols_view_treeview()
+                return
+            only_apply_result = literal_eval(self.new_frame.formula_only_apply_result)
+            self.new_frame = askconfirm_frame(self,
+                                              "".join(("WARNING - This will overwrite any applicable cells in this column. Set formula for ",
+                                                       self.C.headers[self.col_sel].name,"  ")),
+                                              confirm_text="Continue",
+                                              bgcolor="yellow",fgcolor="black", theme = self.C.C.theme)
+            self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            if self.new_frame.boolean == False:
+                self.enable_cols_view_treeview()
+                return
+        else:
+            only_apply_result = literal_eval(self.new_frame.formula_only_apply_result)
+            formula = self.new_frame.new_formula
+        if formula == self.C.headers[self.col_sel].formula and self.C.headers[self.col_sel].formula_only_apply_if_cols == only_apply_result:
+            self.enable_cols_view_treeview()
+            return
+        self.C.snapshot_edit_formula(int(self.col_sel),formula)
+        if formula:
+            if self.C.headers[self.col_sel].type_ == "Text Detail":
+                old_formula_col_indexes = {int("".join(re.findall("([0-9]+)",form_col))) - 1 for form_col in re.split('("[^"]*"|\+)',self.C.headers[self.col_sel].formula) if form_col.startswith(("c","C"))}
+            else:
+                old_formula_col_indexes = {int("".join(re.findall("([0-9]+)",form_col))) - 1 for form_col in re.findall("([cC][0-9]+)",self.C.headers[self.col_sel].formula)}
+            for idx in old_formula_col_indexes:
+                self.C.headers[idx].cols.discard(self.col_sel)
+            if self.C.headers[self.col_sel].type_ == "Text Detail":
+                new_formula_col_indexes = {int("".join(re.findall("([0-9]+)",form_col))) - 1 for form_col in re.split('("[^"]*"|\+)',formula) if form_col.startswith(("c","C"))}
+            else:
+                new_formula_col_indexes = {int("".join(re.findall("([0-9]+)",form_col))) - 1 for form_col in re.findall("([cC][0-9]+)",formula)}
+            for idx in new_formula_col_indexes:
+                self.C.headers[idx].cols.add(int(self.col_sel))
+        elif not formula:
+            if self.C.headers[self.col_sel].type_ == "Text Detail":
+                for idx in {int("".join(re.findall("([0-9]+)",form_col))) - 1 for form_col in re.split('("[^"]*"|\+)',self.C.headers[self.col_sel].formula) if form_col.startswith(("c","C"))}:
+                    try:
+                        self.C.headers[idx].cols.discard(self.col_sel)
+                    except:
+                        pass
+            else:
+                old_formula_col_indexes = {int("".join(re.findall("([0-9]+)",form_col))) - 1 for form_col in re.findall("([cC][0-9]+)",self.C.headers[self.col_sel].formula)}
+                for idx in old_formula_col_indexes:
+                    try:
+                        self.C.headers[idx].cols.discard(self.col_sel)
+                    except:
+                        pass
+        self.C.headers[self.col_sel].formula_only_apply_if_cols = only_apply_result
+        self.C.headers[self.col_sel].formula = formula
+        self.repopulate()
+        self.actions.add("formula")
+        self.enable_cols_view_treeview()
+        self.cols_view.select_row(str(self.col_sel))
+
+    def cols_view_double_b1(self,event):
+        region = self.cols_view.identify_region(event)
+        if region in ("header", "top left"):
+            return
+        column = self.cols_view.identify_column(event, allow_end = False)
+        header = self.cols_view.identify_row(event, allow_end = False)    
+        if column is not None and header is not None:
+            self.col_sel = int(header)
+            if region == "table":
+                self.cols_view.select_cell(row = header, column = column)
+            elif region == "index":
+                self.cols_view.select_row(header)
+            typ = self.C.headers[self.col_sel].type_
+            self.C.treecolsel = self.col_sel
+            if column == 0:
+                self.popup_rename_col()
+            if typ in ("Text Detail","Numerical Detail","Date Detail"):
+                if column == 1:
+                    if typ == "Text Detail":
+                        self.ss_rc_coltypes_menu.entryconfig("Text Detail",state="disabled")
+                        self.ss_rc_coltypes_menu.entryconfig("Numerical Detail",state="normal")
+                        self.ss_rc_coltypes_menu.entryconfig("Date Detail",state="normal")
+                    elif typ == "Numerical Detail":
+                        self.ss_rc_coltypes_menu.entryconfig("Text Detail",state="normal")
+                        self.ss_rc_coltypes_menu.entryconfig("Numerical Detail",state="disabled")
+                        self.ss_rc_coltypes_menu.entryconfig("Date Detail",state="normal")
+                    elif typ == "Date Detail":
+                        self.ss_rc_coltypes_menu.entryconfig("Text Detail",state="normal")
+                        self.ss_rc_coltypes_menu.entryconfig("Numerical Detail",state="normal")
+                        self.ss_rc_coltypes_menu.entryconfig("Date Detail",state="disabled")
+                    self.ss_rc_coltypes_menu.tk_popup(event.x_root,event.y_root)
+                if column == 2:
+                    self.popup_edit_formula()
+                elif column == 4:
+                    self.edit_validation()
+            if typ in ("ID", "Parent", "Text Detail", "Numerical Detail", "Date Detail"):
+                if column == 3:
+                    self.go_to_formatting_view()
+    
+    def cols_view_rc(self,event):
+        region = self.cols_view.identify_region(event)
+        if region in ("header", "top left"):
+            return
+        column = self.cols_view.identify_column(event, allow_end = False)
+        header = self.cols_view.identify_row(event, allow_end = False)
+        if header is not None:
+            selectedcols = self.cols_view.get_selected_rows()
+            if len(selectedcols) > 1 and header in selectedcols:
+                self.ss_rc_popup_menu_cols_multiple.entryconfig("Delete columns",state="normal")
+                if self.C.ic in selectedcols or self.C.pc in selectedcols:
+                    self.ss_rc_popup_menu_cols_multiple.entryconfig("Delete columns",state="disabled")
+                self.ss_rc_popup_menu_cols_multiple.tk_popup(event.x_root,event.y_root)
+            else:
+                if region == "table":
+                    self.cols_view.select_row(row = header)
+                elif region == "index":
+                    self.cols_view.select_row(header)
+                self.col_sel = int(header)
+                self.C.treecolsel = self.col_sel
+                if self.col_sel == self.C.ic or self.col_sel == self.C.pc:
+                    self.ss_rc_popup_menu_cols_delete_menu.entryconfig("Delete Column",state="disabled")
+                else:
+                    self.ss_rc_popup_menu_cols_delete_menu.entryconfig("Delete Column",state="normal")
+                typ = self.C.headers[self.col_sel].type_
+                self.ss_rc_popup_menu_cols_edit_menu.entryconfig("Edit Formatting",state="normal")
+                if typ not in ("Text Detail","Numerical Detail","Date Detail"):
+                    self.ss_rc_popup_menu_cols.entryconfig("Change column type",state="disabled")
+                    self.ss_rc_popup_menu_cols_edit_menu.entryconfig("Edit Formula",state="disabled")
+                    self.ss_rc_popup_menu_cols_edit_menu.entryconfig("Edit Validation",state="disabled")
+                else:
+                    self.ss_rc_popup_menu_cols.entryconfig("Change column type",state="normal")
+                    if not self.C.headers[self.col_sel].validation:
+                        self.ss_rc_popup_menu_cols_edit_menu.entryconfig("Edit Formula",state="normal")
+                    else:
+                        self.ss_rc_popup_menu_cols_edit_menu.entryconfig("Edit Formula",state="disabled")
+                    if not self.C.headers[self.col_sel].formula:
+                        self.ss_rc_popup_menu_cols_edit_menu.entryconfig("Edit Validation",state="normal")
+                    else:
+                        self.ss_rc_popup_menu_cols_edit_menu.entryconfig("Edit Validation",state="disabled")
+                    if typ == "Text Detail":
+                        self.ss_rc_coltypes_menu.entryconfig("Text Detail",state="disabled")
+                        self.ss_rc_coltypes_menu.entryconfig("Numerical Detail",state="normal")
+                        self.ss_rc_coltypes_menu.entryconfig("Date Detail",state="normal")
+                    elif typ == "Numerical Detail":
+                        self.ss_rc_coltypes_menu.entryconfig("Text Detail",state="normal")
+                        self.ss_rc_coltypes_menu.entryconfig("Numerical Detail",state="disabled")
+                        self.ss_rc_coltypes_menu.entryconfig("Date Detail",state="normal")
+                    elif typ == "Date Detail":
+                        self.ss_rc_coltypes_menu.entryconfig("Text Detail",state="normal")
+                        self.ss_rc_coltypes_menu.entryconfig("Numerical Detail",state="normal")
+                        self.ss_rc_coltypes_menu.entryconfig("Date Detail",state="disabled")
+                self.ss_rc_popup_menu_cols.tk_popup(event.x_root,event.y_root)
+        elif header is None:
+            self.col_sel = int(self.total)
+            self.C.treecolsel = self.col_sel
+            self.ss_rc_popup_menu_end.tk_popup(event.x_root,event.y_root)
+
+    def formatting_view_double_b1(self,event):
+        region = self.formatting_view.identify_region(event)
+        if region == "table":
+            column = self.formatting_view.identify_column(event, allow_end=False)
+            condition = self.formatting_view.identify_row(event, allow_end=False)
+            if column is not None and condition is not None:
+                self.formatting_view.select_row(condition)
+                self.cond_sel = int(condition)
+                self.edit_condition()
+    
+    def formatting_view_rc(self,event):
+        region = self.formatting_view.identify_region(event)
+        if region == "table" or "index":
+            column = self.formatting_view.identify_column(event, allow_end=False)
+            condition = self.formatting_view.identify_row(event, allow_end=False)
+            if column is not None and condition is not None:
+                self.formatting_view.select_row(condition)
+                self.cond_sel = int(condition)
+                self.formatting_view_rc_menu.entryconfig("Edit condition",state="normal")
+                self.formatting_view_rc_menu.entryconfig("Del condition",state="normal")
+                if len(self.C.headers[self.col_sel].formatting) < 35:
+                    self.formatting_view_rc_menu.entryconfig("Add condition",state="normal")
+                else:
+                    self.formatting_view_rc_menu.entryconfig("Add condition",state="disabled")
+                self.formatting_view_rc_menu.tk_popup(event.x_root,event.y_root)
+            elif condition is None:
+                self.formatting_view.deselect("all")
+                self.cond_sel = int(len(self.C.headers[self.col_sel].formatting))
+                self.formatting_view_rc_menu.entryconfig("Edit condition",state="disabled")
+                self.formatting_view_rc_menu.entryconfig("Del condition",state="disabled")
+                self.formatting_view_rc_menu.tk_popup(event.x_root,event.y_root)
+        
+    def edit_condition(self,event=None):
+        self.disable_formatting_view_treeview()
+        header = self.C.headers[self.col_sel]
+        if header.formatting:
+            cond_tuple = header.formatting[self.cond_sel]
+        else:
+            cond_tuple = ("",self.displayed_colors[0])
+        self.new_frame = edit_condition_frame(self.formatting_view_FRAME,
+                                              condition=cond_tuple[0],
+                                              colors=self.displayed_colors,
+                                              color=self.internal_colors[cond_tuple[1]],
+                                              coltype=header.type_,
+                                              theme = self.C.C.theme)
+        self.new_frame.grid(row=3,column=1,columnspan=2,sticky="nswe")
+        self.bind("<Return>",self.new_frame.confirm)
+        self.new_frame.wait_window()
+        if self.window_destroyed:
+            return
+        self.unbind("<Return>")
+        if self.new_frame.result == False:
+            self.enable_formatting_view_treeview()
+            return
+        condition = self.C.check_condition_validity(self.col_sel,self.new_frame.new_condition)
+        if condition.startswith("Error:"):
+            self.new_frame = error_frame(self.formatting_view_FRAME,"".join((" ",condition,"   See 'Help' under the 'File' menu for instructions on conditional formatting in Tree Surgeon   ")),
+                                         theme = self.C.C.theme)
+            self.new_frame.grid(row=3,column=1,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            self.enable_formatting_view_treeview()
+            return
+        color = self.displayed_colors_dct[self.new_frame.color]
+        self.C.headers[self.col_sel].formatting[self.cond_sel] = (condition, color)
+        self.populate_formatting_view(col = self.col_sel)
+        self.enable_formatting_view_treeview()
+        self.formatting_view.select_row(f"{self.cond_sel}")
+
+    def add_auto_conditions(self,num_or_date="num"):
+        self.disable_formatting_view_treeview()
+        header = self.C.headers[self.col_sel]
+        if num_or_date == "num":
+            self.new_frame = auto_add_condition_num_frame(self.formatting_view_FRAME,self.col_sel,self.C.sheet, theme = self.C.C.theme)
+        else:
+            self.new_frame = auto_add_condition_date_frame(self.formatting_view_FRAME,self.col_sel,self.C.sheet,self.C.DATE_FORM, theme = self.C.C.theme)
+        self.new_frame.grid(row=3,column=1,columnspan=2,sticky="nswe")
+        self.bind("<Return>",self.new_frame.confirm)
+        self.new_frame.wait_window()
+        if self.window_destroyed:
+            return
+        self.unbind("<Return>")
+        if self.new_frame.result == False:
+            self.enable_formatting_view_treeview()
+            return
+        if num_or_date == "num":
+            ac = {"0","1","2","3","4","5","6","7","8","9","-","."}
+            min_v = "".join(c for c in self.new_frame.min_val if c in ac)
+            max_v = "".join(c for c in self.new_frame.max_val if c in ac)
+            if not min_v and not max_v:
+                self.enable_formatting_view_treeview()
+                return
+            try:
+                if not min_v:
+                    min_v = 0
+                else:
+                    min_v = float(min_v)
+                if not max_v:
+                    max_v = 0
+                else:
+                    max_v = float(max_v)
+            except:
+                self.enable_formatting_view_treeview()
+                return
+            if min_v >= max_v:
+                self.new_frame = error_frame(self.formatting_view_FRAME,
+                                             "".join(("Error: Minimum value greater than or equal to maximum value"," - see 'Help' under the 'File' menu for instructions on conditional formatting in Tree Surgeon   ")),
+                                             theme = self.C.C.theme)
+                self.new_frame.grid(row=3,column=1,columnspan=2,sticky="nswe")
+                self.bind("<Return>",self.new_frame.confirm)
+                self.new_frame.wait_window()
+                if self.window_destroyed:
+                    return
+                self.unbind("<Return>")
+                self.enable_formatting_view_treeview()
+                return
+            self.C.headers[self.col_sel].formatting = []
+            step = (max_v - min_v) / 20
+            if header.type_ == "Numerical Detail":
+                if self.new_frame.order == "ASCENDING":
+                    v = float(min_v)
+                    for i in range(1,21):
+                        if not i % 20:
+                            self.C.headers[self.col_sel].formatting.append(("".join((">= ",str(v)," and <= ",str(v + step))),self.scale_colors[i-1]))
+                        else:
+                            self.C.headers[self.col_sel].formatting.append(("".join((">= ",str(v)," and < ",str(v + step))),self.scale_colors[i-1]))
+                            v += step
+                elif self.new_frame.order == "DESCENDING":
+                    v = float(max_v)
+                    for i in range(1,21):
+                        if not i % 20:
+                            self.C.headers[self.col_sel].formatting.append(("".join(("<= ",str(v)," and >= ",str(v - step))),self.scale_colors[i-1]))
+                        else:
+                            self.C.headers[self.col_sel].formatting.append(("".join(("<= ",str(v)," and > ",str(v - step))),self.scale_colors[i-1]))
+                            v -= step
+            elif header.type_ == "Date Detail":
+                if self.new_frame.order == "ASCENDING":
+                    v = min_v
+                    for i in range(1,21):
+                        if not i % 20:
+                            self.C.headers[self.col_sel].formatting.append(("".join((">= ",str(round(v))," and <= ",str(round(v + step)))),self.scale_colors[i-1]))
+                        else:
+                            self.C.headers[self.col_sel].formatting.append(("".join((">= ",str(round(v))," and < ",str(round(v + step)))),self.scale_colors[i-1]))
+                            v += step
+                elif self.new_frame.order == "DESCENDING":
+                    v = max_v
+                    for i in range(1,21):
+                        if not i % 20:
+                            self.C.headers[self.col_sel].formatting.append(("".join(("<= ",str(round(v))," and >= ",str(round(v - step)))),self.scale_colors[i-1]))
+                        else:
+                            self.C.headers[self.col_sel].formatting.append(("".join(("<= ",str(round(v))," and > ",str(round(v - step)))),self.scale_colors[i-1]))
+                            v -= step
+        elif num_or_date == "date":
+            ac = {"0","1","2","3","4","5","6","7","8","9","/","-"}
+            min_v = "".join(c for c in self.new_frame.min_val if c in ac).replace("-","/")
+            max_v = "".join(c for c in self.new_frame.max_val if c in ac).replace("-","/")
+            if not min_v and not max_v:
+                self.enable_formatting_view_treeview()
+                return
+            DATE_FORM = self.C.convert_hyphen_to_slash_date_form(self.C.DATE_FORM)
+            try:
+                min_v = datetime.datetime.strptime(min_v, DATE_FORM)
+                max_v = datetime.datetime.strptime(max_v, DATE_FORM)
+            except:
+                self.enable_formatting_view_treeview()
+                return
+            if min_v >= max_v:
+                self.new_frame = error_frame(self.formatting_view_FRAME,
+                                             "".join(("Error: Minimum value greater than or equal to maximum value"," - see 'Help' under the 'File' menu for instructions on conditional formatting in Tree Surgeon   ")),
+                                             theme = self.C.C.theme)
+                self.new_frame.grid(row=3,column=1,columnspan=2,sticky="nswe")
+                self.bind("<Return>",self.new_frame.confirm)
+                self.new_frame.wait_window()
+                if self.window_destroyed:
+                    return
+                self.unbind("<Return>")
+                self.enable_formatting_view_treeview()
+                return
+            self.C.headers[self.col_sel].formatting = []
+            step = ((max_v - min_v).days) / 20
+            step = datetime.timedelta(days=step)
+            if self.new_frame.order == "ASCENDING":
+                v = min_v # strptime
+                for i in range(1,21):
+                    s1 = datetime.datetime.strftime(v, DATE_FORM)
+                    s2 = datetime.datetime.strftime(v + step, DATE_FORM)
+                    if not i % 20:
+                        self.C.headers[self.col_sel].formatting.append(("".join((">= ",s1," and <= ",s2)),self.scale_colors[i-1]))
+                    else:
+                        self.C.headers[self.col_sel].formatting.append(("".join((">= ",s1," and < ",s2)),self.scale_colors[i-1]))
+                        v = v + step
+            elif self.new_frame.order == "DESCENDING":
+                v = max_v # strptime
+                for i in range(1,21):
+                    s1 = datetime.datetime.strftime(v, DATE_FORM)
+                    s2 = datetime.datetime.strftime(v - step, DATE_FORM)
+                    if not i % 20:
+                        self.C.headers[self.col_sel].formatting.append(("".join(("<= ",s1," and >= ",s2)),self.scale_colors[i-1]))
+                    else:
+                        self.C.headers[self.col_sel].formatting.append(("".join(("<= ",s1," and > ",s2)),self.scale_colors[i-1]))
+                        v = v - step
+        self.populate_formatting_view(col=self.col_sel)
+        self.enable_formatting_view_treeview()
+
+    def add_condition(self,event=None):
+        self.disable_formatting_view_treeview()
+        header = self.C.headers[self.col_sel]
+        cond_tuple = ("", self.displayed_colors[0])
+        self.new_frame = edit_condition_frame(self.formatting_view_FRAME,
+                                              condition=cond_tuple[0],
+                                              colors=self.displayed_colors,
+                                              color=cond_tuple[1],
+                                              coltype=header.type_,
+                                              confirm_text="Add condition",
+                                              theme = self.C.C.theme)
+        self.new_frame.grid(row=3,column=1,columnspan=2,sticky="nswe")
+        self.bind("<Return>",self.new_frame.confirm)
+        self.new_frame.wait_window()
+        if self.window_destroyed:
+            return
+        self.unbind("<Return>")
+        if self.new_frame.result == False:
+            self.enable_formatting_view_treeview()
+            return
+        condition = self.C.check_condition_validity(self.col_sel,self.new_frame.new_condition)
+        if condition.startswith("Error:"):
+            self.new_frame = error_frame(self.formatting_view_FRAME,"".join((" ",condition,"   See 'Help' under the 'File' menu for instructions on conditional formatting in Tree Surgeon   ")),
+                                         theme = self.C.C.theme)
+            self.new_frame.grid(row=3,column=1,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            self.enable_formatting_view_treeview()
+            return
+        color = self.displayed_colors_dct[self.new_frame.color]
+        self.C.headers[self.col_sel].formatting.insert(self.cond_sel, (condition, color))
+        self.populate_formatting_view(col = self.col_sel)
+        self.enable_formatting_view_treeview()
+        self.formatting_view.select_row(self.cond_sel)
+
+    def del_condition(self,event=None):
+        elements = self.formatting_view.get_selected_rows(get_cells_as_rows = True, return_tuple = True)
+        if not elements:
+            return
+        self.C.headers[self.col_sel].formatting[elements[0]:elements[-1] + 1] = []
+        self.cond_sel = None
+        self.populate_formatting_view(col=self.col_sel)
+        
+    def disable_paste(self):
+        self.ss_rc_popup_menu_cols.entryconfig("Paste columns",state="disabled")
+        self.ss_rc_popup_menu_end.entryconfig("Paste columns",state="disabled")
+ 
+    def popup_rename_col(self):
+        self.disable_cols_view_treeview()
+        currcolname = self.C.headers[self.col_sel].name
+        if self.col_sel in self.C.hiers:
+            self.new_frame = rename_column_frame(self,currcolname,"hierarchy", theme = self.C.C.theme)
+        elif self.col_sel == self.C.ic:
+            self.new_frame = rename_column_frame(self,currcolname,"ID", theme = self.C.C.theme)
+        else:
+            self.new_frame = rename_column_frame(self,currcolname,"detail", theme = self.C.C.theme)
+        self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+        self.bind("<Return>",self.new_frame.confirm)
+        self.new_frame.wait_window()
+        if self.window_destroyed:
+            return
+        self.unbind("<Return>")
+        if not self.new_frame.result:
+            self.enable_cols_view_treeview()
+            return
+        x = self.new_frame.result.lower()
+        for i,h in enumerate(self.C.headers):
+            if x == h.name.lower() and i != self.col_sel:
+                self.new_frame = error_frame(self,"".join(("Name: ",h.name," already exists")), theme = self.C.C.theme)
+                self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+                self.bind("<Return>",self.new_frame.confirm)
+                self.new_frame.wait_window()
+                if self.window_destroyed:
+                    return
+                self.unbind("<Return>")
+                self.enable_cols_view_treeview()
+                return
+        self.C.rename_col(self.new_frame.result)
+        self.actions.add("rename")
+        self.repopulate()
+        self.enable_cols_view_treeview()
+        self.cols_view.select_row(str(self.col_sel))
+        
+    def popup_add_col(self):
+        self.disable_cols_view_treeview()
+        self.new_frame = add_detail_column_frame(self)
+        self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+        self.bind("<Return>",self.new_frame.confirm)
+        self.cols_view.bind("<1>",self.add_col_to_formula)
+        self.new_frame.wait_window()
+        if self.window_destroyed:
+            return
+        self.unbind("<Return>")
+        self.cols_view.unbind("<1>")
+        if not self.new_frame.result:
+            self.enable_cols_view_treeview()
+            return
+        x = self.new_frame.result.lower()
+        for h in self.C.headers:
+            if x == h.name.lower():
+                self.new_frame = error_frame(self,"".join(("Name: ",h.name," already exists")), theme = self.C.C.theme)
+                self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+                self.bind("<Return>",self.new_frame.confirm)
+                self.new_frame.wait_window()
+                if self.window_destroyed:
+                    return
+                self.unbind("<Return>")
+                self.enable_cols_view_treeview()
+                return
+        self.C.add_col(self.new_frame.result,self.new_frame.type_)
+        self.disable_paste()
+        self.actions.add("anyother")
+        self.repopulate()
+        self.enable_cols_view_treeview()
+        self.cols_view.select_row(str(self.col_sel))
+        
+    def popup_add_hier_col(self):
+        self.disable_cols_view_treeview()
+        self.new_frame = add_hierarchy_frame(self)
+        self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+        self.bind("<Return>",self.new_frame.confirm)
+        self.new_frame.wait_window()
+        if self.window_destroyed:
+            return
+        self.unbind("<Return>")
+        if not self.new_frame.result:
+            self.enable_cols_view_treeview()
+            return
+        x = self.new_frame.result.lower()
+        for h in self.C.headers:
+            if x == h.name.lower():
+                self.new_frame = error_frame(self,"".join(("Name: ",h.name," already exists")), theme = self.C.C.theme)
+                self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+                self.bind("<Return>",self.new_frame.confirm)
+                self.new_frame.wait_window()
+                if self.window_destroyed:
+                    return
+                self.unbind("<Return>")
+                self.enable_cols_view_treeview()
+                return
+        self.C.add_hier_col(self.new_frame.result)
+        self.disable_paste()
+        self.actions.add("anyother")
+        self.repopulate()
+        self.enable_cols_view_treeview()
+        self.cols_view.select_row(str(self.col_sel))
+        
+    def popup_paste_col(self):
+        names = tuple(f"{self.C.headers[h].name}" for h in self.C.cut_columns)
+        self.C.snapshot_drag_cols_col_manager(self.C.cut_columns, self.C.treecolsel)
+        self.disable_paste()
+        self.actions.add("anyother")
+        self.repopulate()
+        for name in names:
+            try:
+                self.cols_view.add_row_selection(r = next(i for i, h in enumerate(self.C.headers) if h.name == name), redraw = False, run_binding_func = False)
+            except:
+                continue
+        self.cols_view.refresh()
+        
+    def popup_cut_col(self):
+        self.C.cut_cols(self.cols_view.get_selected_rows(return_tuple = True))
+        self.ss_rc_popup_menu_cols.entryconfig("Paste columns",state="normal")
+        self.ss_rc_popup_menu_end.entryconfig("Paste columns",state="normal")
+        
+    def popup_del_col(self,event=None):
+        headers = self.cols_view.get_selected_rows(return_tuple = True)
+        if headers:
+            self.col_sel = headers[0]
+            headers = set(headers)
+        else:
+            return
+        if self.col_sel == self.C.ic or self.col_sel == self.C.pc or self.C.ic in headers or self.C.pc in headers or not headers:
+            return
+        self.disable_cols_view_treeview()
+        if len(headers) > 1:
+            self.new_frame = askconfirm_frame(self,"Delete columns: " + ", ".join([self.C.headers[idx].name for idx in headers]),
+                                              bgcolor="yellow",
+                                              fgcolor="black",
+                                              confirm_text="Delete", theme = self.C.C.theme)
+            self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            if self.new_frame.boolean == False:
+                self.enable_cols_view_treeview()
+                return
+            for i, header in enumerate(headers):
+                self.col_sel = int(header) - i
+                self.C.treecolsel = self.col_sel
+                self.C.del_col()
+        else:
+            self.new_frame = askconfirm_frame(self,"Delete column: "+self.C.headers[self.col_sel].name,
+                                              bgcolor="yellow",
+                                              fgcolor="black",
+                                              confirm_text="Delete", theme = self.C.C.theme)
+            self.new_frame.grid(row=2,column=0,columnspan=2,sticky="nswe")
+            self.bind("<Return>",self.new_frame.confirm)
+            self.new_frame.wait_window()
+            if self.window_destroyed:
+                return
+            self.unbind("<Return>")
+            if self.new_frame.boolean == False:
+                self.enable_cols_view_treeview()
+                return
+            self.C.treecolsel = self.col_sel
+            self.C.del_col()
+        self.disable_paste()
+        self.cols_view.deselect("all")
+        self.actions.add("delcol")
+        self.repopulate()
+        self.col_sel = None
+        self.enable_cols_view_treeview()
+
+
+class view_id_popup(tk.Toplevel):
+    def __init__(self,
+                 C,
+                 ids_row,
+                 width=800,
+                 height=800,
+                 theme = "dark"):
+        tk.Toplevel.__init__(self,C,width="1",height="1", bg = theme_bg(theme))
+        self.withdraw()
+        self.tk.call("wm","iconphoto",self._w,tk.PhotoImage(format="gif",data=top_left_icon))
+        self.C = C
+        self.title(f"{self.C.sheet[ids_row['rn']][self.C.ic]} - Click the X button or press escape to go back")
+        self.protocol("WM_DELETE_WINDOW",self.USER_HAS_CLOSED_WINDOW)
+        self.USER_HAS_QUIT = False
+        self.wm_transient(self.C)
+        self.focus_force()
+        self.grab_set()
+        
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_rowconfigure(1,weight=1)
+
+        self.ids_rn = ids_row['rn']
+        self.changes_made = 0
+
+        self.sheetdisplay = Sheet(self,
+                                  theme = theme,
+                                  header_font = ("Calibri", 13, "normal"),
+                                  row_index_width = 150,
+                                  row_index_align = "w",
+                                  outline_thickness=0)
+        self.sheetdisplay.headers(newheaders=["Column Value"])
+        self.sheetdisplay.row_index(newindex = [f"{c}    {' ' * (len(str(len(self.C.headers))) - len(str(c)))}{hdr.name}" for c, hdr in enumerate(self.C.headers, 1)])
+        self.redo_display()
+        for c, hdr in enumerate(self.C.headers):
+            if hdr.validation and hdr.validation not in (["only uk working days"],
+                                                         {"only uk working days"},
+                                                         ["only england working days"],
+                                                         {"only england working days"},
+                                                         ["only wales working days"],
+                                                         {"only wales working days"},
+                                                         ["only scotland working days"],
+                                                         {"only scotland working days"},
+                                                         ["only ni working days"],
+                                                         {"only ni working days"}):
+                self.sheetdisplay.create_dropdown(r = c,
+                                                  c = 0,
+                                                  values = hdr.validation,
+                                                  set_value = self.C.sheet[self.ids_rn][c],
+                                                  destroy_on_leave = False,
+                                                  destroy_on_select = False,
+                                                  set_cell_on_select = True,
+                                                  redraw = False,
+                                                  recreate_selection_boxes = False)
+        self.sheetdisplay.set_width_of_index_to_text()
+        self.sheetdisplay.set_xview(0.0)
+        self.sheetdisplay.set_yview(0.0)
+        self.enable_bindings()
+        self.sheetdisplay.grid(row=1,column=0,sticky="nswe")
+        self.status_bar = StatusBar(self,
+                                    text = f"ID - {self.C.sheet[self.ids_rn][self.C.ic]} concise view",
+                                    theme = theme)
+        self.status_bar.grid(row=2,column=0,sticky="nswe")
+        self.bind("<Escape>",self.cancel)
+        center(self,width,height)
+        self.deiconify()
+        self.wait_window()
+
+    def redo_display(self, event = None):
+        self.sheetdisplay.data_reference(newdataref = [[v] for v in self.C.sheet[self.ids_rn]],
+                                         reset_col_positions=False,
+                                         reset_row_positions=False,
+                                         redraw=False)
+        self.sheetdisplay.dehighlight_cells(all_ = True)
+        for tup1, tup2 in self.C.sheetdisplay.get_highlighted_cells().items():
+            if tup1[0] == self.ids_rn:
+                self.sheetdisplay.highlight_cells(row = tup1[1],
+                                                  column = 0,
+                                                  bg = tup2[0],
+                                                  fg = tup2[1])
+        self.sheetdisplay.set_all_dropdown_values_to_sheet()
+        self.sheetdisplay.resize_dropdowns()
+        self.sheetdisplay.set_all_cell_sizes_to_text()
+        self.sheetdisplay.refresh()
+        self.sheetdisplay.recreate_all_selection_boxes()
+
+    def cut(self, event = None):
+        pass
+
+    def copy(self, event = None):
+        currently_selected = self.sheetdisplay.get_currently_selected()
+        if currently_selected:
+            s = io.StringIO()
+            writer = csv_module.writer(s, dialect = csv_module.excel_tab, lineterminator = "\n")
+            if isinstance(currently_selected[0], int):
+                boxes, maxrows = self.sheetdisplay.get_ctrl_x_c_boxes()
+                row = []
+                for rn in range(maxrows):
+                    for r1, c1, r2, c2 in boxes:
+                        if r2 - r1 < maxrows:
+                            continue
+                        data_ref_rn = r1 + rn
+                        for c in range(c1, c2):
+                            try:
+                                row.append(self.C.sheet[self.ids_rn][data_ref_rn])
+                            except:
+                                row.append("")
+                writer.writerow(row)
+            elif currently_selected[0] == "column":
+                boxes, maxrows = self.sheetdisplay.get_ctrl_x_c_boxes()
+                row = []
+                for rn in range(maxrows):
+                    for r1, c1, r2, c2 in boxes:
+                        if r2 - r1 < maxrows:
+                            continue
+                        data_ref_rn = r1 + rn
+                        for c in range(c1, c2):
+                            try:
+                                row.append(self.C.headers[data_ref_rn].name)
+                            except:
+                                row.append("")
+                writer.writerow(row)
+                row = []
+                for rn in range(maxrows):
+                    for r1, c1, r2, c2 in boxes:
+                        if r2 - r1 < maxrows:
+                            continue
+                        data_ref_rn = r1 + rn
+                        for c in range(c1, c2):
+                            try:
+                                row.append(self.C.sheet[self.ids_rn][data_ref_rn])
+                            except:
+                                row.append("")
+                writer.writerow(row)
+            elif currently_selected[0] == "row":
+                row = []
+                boxes = self.sheetdisplay.get_ctrl_x_c_boxes()
+                for r1, c1, r2, c2 in boxes:
+                    for rn in range(r2 - r1):
+                        data_ref_rn = r1 + rn
+                        for c in range(c1, c2):
+                            try:
+                                row.append(self.C.headers[data_ref_rn].name)
+                            except:
+                                row.append("")
+                writer.writerow(row)
+                row = []
+                for r1, c1, r2, c2 in boxes:
+                    for rn in range(r2 - r1):
+                        data_ref_rn = r1 + rn
+                        for c in range(c1, c2):
+                            try:
+                                row.append(self.C.sheet[self.ids_rn][data_ref_rn])
+                            except:
+                                row.append("")
+                writer.writerow(row)
+            for r1, c1, r2, c2 in boxes:
+                self.sheetdisplay.show_ctrl_outline(canvas = "table", start_cell = (c1, r1), end_cell = (c2, r2))
+            self.clipboard_clear()
+            s = s.getvalue().rstrip()
+            self.clipboard_append(s)
+            self.update()
+
+    def paste(self, event = None):
+        pass
+
+    def undo(self, event = None):
+        if not self.changes_made:
+            return
+        self.C.undo()
+        self.redo_display()
+        self.changes_made -= 1
+
+    def delete(self, event = None):
+        pass
+
+    def ss_edit_cell(self, event = None):
+        if not self.sheetdisplay.anything_selected():
+            return
+        r, c = self.sheetdisplay.get_currently_selected(True, True)
+        if c is None or r is None:
+            return
+        if self.C.headers[r].type_ == "ID" or self.C.headers[r].formula or self.C.showing_all_hierarchies:
+            return
+        if self.C.headers[r].validation and self.C.headers[r].validation not in (["only uk working days"],
+                                                                                 {"only uk working days"},
+                                                                                 ["only england working days"],
+                                                                                 {"only england working days"},
+                                                                                 ["only wales working days"],
+                                                                                 {"only wales working days"},
+                                                                                 ["only scotland working days"],
+                                                                                 {"only scotland working days"},
+                                                                                 ["only ni working days"],
+                                                                                 {"only ni working days"}):
+            return
+        self.unbind("<Escape>")
+        st = set("qazwsxedcrfvtgbyhnujmikolpQAZWSXEDCRFVTGBYHNUJMIKOLP0987654321")
+        ID = self.C.sheet[self.ids_rn][self.C.ic]
+        ik = ID.lower()
+        currentdetail = self.C.sheet[self.ids_rn][r]
+        heading = self.C.headers[r].name
+        if event.char in st:
+            text = event.char
+        elif event.keysym == "BackSpace":
+            text = ""
+        else:
+            text = f"{currentdetail}"
+        self.sheetdisplay.select_cell(row = r, column = c)
+        self.sheetdisplay.see(row = r, column = c, keep_yscroll = False, keep_xscroll = False, bottom_right_corner = False, check_cell_visibility = True)
+        self.sheetdisplay.RI.set_row_height(r, only_set_if_too_small = True)
+        self.sheetdisplay.CH.set_col_width(0, only_set_if_too_small = True)
+        self.sheetdisplay.refresh()
+        self.sheetdisplay.create_text_editor(row = r, column = 0, text = text, set_data_ref_on_destroy = False)
+        self.sheetdisplay.bind_text_editor_set(self.ss_edit_cell_destroy_entry, row = r, column = 0)
+
+    def ss_edit_cell_destroy_entry(self, event = None):
+        r = event[0]
+        c = event[1]
+        curr_ = self.sheetdisplay.get_currently_selected(True, True)
+        newtext = self.sheetdisplay.get_text_editor_value(r = r,
+                                                          c = c,
+                                                          set_data_ref_on_destroy = False,
+                                                          move_down = False if event[2] == "Escape" else c == curr_[1] and r == curr_[0],
+                                                          redraw = False,
+                                                          recreate = True)
+        if event[2] == "Escape":
+            self.bind("<Escape>", self.cancel)
+            return
+        y1 = int(self.ids_rn)
+        x1 = int(r)
+        sheetdisplay_col = int(x1)
+        ID = self.C.sheet[self.ids_rn][self.C.ic]
+        ik = ID.lower()
+        currentdetail = self.C.sheet[self.ids_rn][r]
+        heading = self.C.headers[r].name
+        if newtext == currentdetail:
+            self.bind("<Escape>",self.cancel)
+            return
+        if self.C.headers[x1].type_ == "ID":
+            self.bind("<Escape>",self.cancel)
+            return
+        successful = False
+        if self.C.headers[x1].type_ == "Parent":
+            self.C.snapshot_paste_id()
+            oldparent = f"{self.C.sheet[y1][x1]}"
+            if self.C.cut_paste_edit_cell(self.C.sheet[y1][self.C.ic], oldparent, x1, newtext):
+                successful = True
+            if not successful:
+                self.C.vs.pop()
+                self.C.vp -= 1
+                self.C.set_undo_label()
+            else:
+                self.C.changelog.append((self.C.get_datetime_changelog(),
+                                       self.C.user_name,
+                                       "Cut and paste ID + children" if self.C.nodes[ik].cn[x1] else "Cut and paste ID",
+                                       self.C.sheet[y1][self.C.ic],
+                                       f"Old parent: {oldparent if oldparent else 'n/a - Top ID'} old column #{x1 + 1} named: {self.C.headers[x1].name}",
+                                       f"New parent: {newtext if newtext else 'n/a - Top ID'} new column #{x1 + 1} named: {self.C.headers[x1].name}"))
+                self.C.prnt_tree()
+                self.C.refresh_all_formulas_and_formatting(rows = [y1])
+                self.C.sheetdisplay.refresh()
+                try:
+                    self.C.treedisplay.selection_set(self.sheet[y1][self.ic])
+                    self.C.see_item(self.sheet[y1][self.ic])
+                except:
+                    pass
+                self.C.disable_paste()
+                self.C.C.status_bar.change_text(self.C.set_status_bar())
+                self.redo_display()
+                self.changes_made += 1
+                self.bind("<Escape>",self.cancel)
+                return
+        if not successful and self.C.headers[x1].type_ not in ("Text Detail", "Numerical Detail", "Date Detail"):
+            self.C.changelog.append((self.C.get_datetime_changelog(),
+                                   self.C.user_name,
+                                   f"Edit cell",
+                                   f"ID: {ID} column #{x1 + 1} named: {self.C.headers[x1].name} with type: {self.C.headers[x1].type_}",
+                                   f"{self.C.sheet[y1][x1]}",
+                                   f"{newtext}"))
+            self.C.snapshot_ctrl_x_v_del_key_id_par()
+            self.C.sheet[y1][x1] = newtext
+            self.C.nodes = {}
+            self.C.disable_paste()
+            self.C.clear_copied_details()
+            self.C.auto_sort_nodes_bool.set(True)
+            self.C.build_tree_start(add_warnings = False)
+            self.C.fix_associate_sort_edit_cells()
+            self.C.rns = {r[self.C.ic].lower(): i for i,r in enumerate(self.C.sheet)}
+            self.C.sheetdisplay.deselect("all")
+            self.C.sheetdisplay.data_reference(newdataref = self.C.sheet, reset_col_positions = False)
+            self.C.sheetdisplay.display_subset_of_columns(indexes = self.C.displayed_columns, enable = not self.C.all_columns_displayed,
+                                                        reset_col_positions = False, set_col_positions = False)
+            self.C.reset_tagged_ids_dropdown()
+            self.C.reset_tagged_ids_sheet()
+            self.C.prnt_tree()
+            self.C.refresh_all_formulas_and_formatting()
+            self.C.sheetdisplay.refresh()
+            self.C.C.status_bar.change_text(self.C.set_status_bar())
+            self.redo_display()
+            self.changes_made += 1
+            self.bind("<Escape>",self.cancel)
+        else:
+            if not self.C.detail_is_valid_for_col(x1, newtext):
+                self.bind("<Escape>",self.cancel)
+                return
+            if self.C.headers[x1].type_ == "Date Detail":
+                newtext = self.C.convert_date(newtext, self.C.DATE_FORM)
+            currentdetail = self.C.sheet[y1][x1]
+            self.C.changelog.append((self.C.get_datetime_changelog(),
+                                   self.C.user_name,
+                                   "Edit cell",
+                                   f"ID: {ID} column #{x1 + 1} named: {self.C.headers[x1].name} with type: {self.C.headers[x1].type_}",
+                                   f"{self.C.sheet[y1][x1]}",
+                                   f"{newtext}"))
+            self.C.snapshot_ctrl_x_v_del_key()
+            self.C.vs[-1]['cells'][(y1, x1)] = f"{self.C.sheet[y1][x1]}"
+            self.C.sheet[y1][x1] = f"{newtext}"
+            self.C.sheetdisplay.RI.set_row_height(y1)
+            self.C.sheetdisplay.CH.set_col_width(sheetdisplay_col, only_set_if_too_small = True)
+            self.C.refresh_all_formulas_and_formatting(rows = [y1])
+            self.C.refresh_treedisplay_item(ID)
+            self.C.disable_paste()
+            self.C.sheetdisplay.refresh()
+            self.C.C.status_bar.change_text(self.C.set_status_bar())
+            self.redo_display()
+            self.changes_made += 1
+            self.bind("<Escape>",self.cancel)
+
+    def cell_was_edited(self, event = None):
+        currentdetail = self.C.sheet[self.ids_rn][event[0]]
+        if currentdetail == self.sheetdisplay.get_cell_data(event[0], event[1]):
+            return
+        newtext = self.sheetdisplay.get_cell_data(event[0], event[1])
+        ID = self.C.sheet[self.ids_rn][self.C.ic]
+        ik = ID.lower()
+        y1 = self.ids_rn
+        x1 = event[0]
+        sheetdisplay_col = x1
+        self.C.changelog.append((self.C.get_datetime_changelog(),
+                               self.C.user_name,
+                               "Edit cell",
+                               f"ID: {ID} column #{x1 + 1} named: {self.C.headers[x1].name} with type: {self.C.headers[x1].type_}",
+                               f"{self.C.sheet[y1][x1]}",
+                               f"{newtext}"))
+        self.C.snapshot_ctrl_x_v_del_key()
+        self.C.vs[-1]['cells'][(y1, x1)] = f"{self.C.sheet[y1][x1]}"
+        self.C.sheet[y1][x1] = f"{newtext}"
+        self.C.sheetdisplay.RI.set_row_height(y1)
+        self.C.sheetdisplay.CH.set_col_width(sheetdisplay_col, only_set_if_too_small = True)
+        self.C.refresh_all_formulas_and_formatting(rows = [y1])
+        self.C.refresh_treedisplay_item(ID)
+        self.C.disable_paste()
+        self.C.sheetdisplay.refresh()
+        self.C.C.status_bar.change_text(self.C.set_status_bar())
+        self.redo_display()
+        self.changes_made += 1
+
+    def enable_bindings(self, event = None):
+        self.sheetdisplay.basic_bindings(True)
+        self.sheetdisplay.enable_bindings(("single",
+                                           "copy",
+                                           "drag_select",
+                                           "column_width_resize",
+                                           "double_click_column_resize",
+                                           "row_height_resize",
+                                           "double_click_row_resize",
+                                           "column_select",
+                                           "row_select",
+                                           "arrowkeys"))
+        self.sheetdisplay.extra_bindings([("edit_cell", self.cell_was_edited)])
+        #self.sheetdisplay.bind("<Control-x>", self.cut)
+        #self.sheetdisplay.bind("<Control-X>", self.cut)
+        self.sheetdisplay.bind("<Control-c>", self.copy)
+        self.sheetdisplay.bind("<Control-C>", self.copy)
+        #self.sheetdisplay.bind("<Control-v>", self.paste)
+        #self.sheetdisplay.bind("<Control-V>", self.paste)
+        self.sheetdisplay.bind("<Control-z>", self.undo)
+        self.sheetdisplay.bind("<Control-Z>", self.undo)
+        #self.sheetdisplay.bind("<Delete>", self.delete)
+        for i in range(10):
+            self.sheetdisplay.bind(f"{i}", self.ss_edit_cell)
+        for c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            self.sheetdisplay.bind(f"<{c}>", self.ss_edit_cell)
+        self.sheetdisplay.bind("<F2>", self.ss_edit_cell)
+        self.sheetdisplay.bind("<Return>", self.ss_edit_cell)
+        self.sheetdisplay.bind("<BackSpace>", self.ss_edit_cell)
+        self.sheetdisplay.bind("<Double-Button-1>", self.ss_edit_cell)
+
+    def disable_bindings(self, event = None):
+        self.sheetdisplay.basic_bindings(False)
+        self.sheetdisplay.disable_bindings(("disable_all", ))
+        self.sheetdisplay.extra_bindings([("edit_cell", None)])
+        #self.sheetdisplay.unbind("<Control-x>")
+        #self.sheetdisplay.unbind("<Control-X>")
+        self.sheetdisplay.unbind("<Control-c>")
+        self.sheetdisplay.unbind("<Control-C>")
+        #self.sheetdisplay.unbind("<Control-v>")
+       # self.sheetdisplay.unbind("<Control-V>")
+        self.sheetdisplay.unbind("<Control-z>")
+        self.sheetdisplay.unbind("<Control-Z>")
+        #self.sheetdisplay.unbind("<Delete>")
+        for i in range(10):
+            self.sheetdisplay.unbind(f"{i}")
+        for c in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            self.sheetdisplay.unbind(f"<{c}>")
+        self.sheetdisplay.unbind("<F2>")
+        self.sheetdisplay.unbind("<Return>")
+        self.sheetdisplay.unbind("<BackSpace>")
+        self.sheetdisplay.unbind("<Double-Button-1>")
+
+    def USER_HAS_CLOSED_WINDOW(self, callback = None):
+        self.USER_HAS_QUIT = True
+        self.destroy()
+        
+    def cancel(self,event=None):
+        self.USER_HAS_CLOSED_WINDOW()
+
+
 class merge_sheets_popup(tk.Toplevel):
     def __init__(self, C, theme = "dark", add_rows = False):
         tk.Toplevel.__init__(self,C,width="1",height="1", bg = theme_bg(theme))
@@ -1388,7 +3825,7 @@ class merge_sheets_popup(tk.Toplevel):
             if temp_data.startswith("{") and temp_data.endswith("}"):
                 self.C.new_sheet = self.C.json_to_sheet(json.loads(temp_data))
             else:
-                delimiter_,quotechar_ = self.csv_delimiter_quotechar(temp_data)
+                delimiter_,quotechar_ = csv_delimiter_quotechar(temp_data)
                 if delimiter_ is None:
                     self.stop_work("Error: Clipboard contained no appropriate data")
                     return
@@ -1442,20 +3879,6 @@ class merge_sheets_popup(tk.Toplevel):
         if parcols and self.C.new_sheet:
             self.selector.set_par_cols(parcols)
 
-    def csv_delimiter_quotechar(self,data):
-        d = Counter(m.group() for m in re.finditer(r"""\t|,|\t'|'\t|\t"|"\t|,'|',|,"|",""",data))
-        if not d['\t'] and not d[',']:
-            return None,None
-        if d['\t'] >= d[',']:
-            delimiter_ = "\t"
-        elif d['\t'] < d[',']:
-            delimiter_ = ","
-        if d['\t"'] + d[',"'] + d['"\t'] + d['",'] >= d["\t'"] + d[",'"] + d["'\t"] + d["',"]:
-            quotechar_ = '"'
-        elif d['\t"'] + d[',"'] + d['"\t'] + d['",'] < d["\t'"] + d[",'"] + d["'\t"] + d["',"]:
-            quotechar_ = "'"
-        return delimiter_,quotechar_
-
     def return_wb_file(self,filepath):
         with open(filepath,"rb") as fh:
             in_mem = io.BytesIO(fh.read())
@@ -1503,7 +3926,7 @@ class merge_sheets_popup(tk.Toplevel):
             if filepath.lower().endswith((".csv",".tsv")):
                 with open(filepath,"r") as fh:
                     temp_data = fh.read()
-                delimiter_,quotechar_ = self.csv_delimiter_quotechar(temp_data)
+                delimiter_,quotechar_ = csv_delimiter_quotechar(temp_data)
                 if delimiter_ is None:
                     self.stop_work("Error: File contained no appropriate data")
                     return
@@ -1549,7 +3972,7 @@ class merge_sheets_popup(tk.Toplevel):
                     ws = self.wb_["Treesurgeon Data"]
                     ws.reset_dimensions()
                     try:
-                        d = self.C.C.decompress_str_return_obj("".join(["" if r[0].value is None else f"{r[0].value}" for r in islice(ws.rows, 1, None)]),
+                        d = self.C.C.decompress_str_return_obj("".join("" if r[0].value is None else f"{r[0].value}" for r in islice(ws.rows, 1, None)),
                                                                                basetype = "32",
                                                                                dec = True)
                         self.C.new_sheet = [[h['name'] for h in d['headers']]] + d['records']
@@ -2238,25 +4661,36 @@ class license_key_entry_popup(tk.Toplevel):
                                      command = self.confirm)
         self.confirm_button.grid(row=0, column = 0, sticky = "nswe",
                                  padx = 60,
-                                 pady = 20)
+                                 pady = 10)
         self.cancel_button = button(self.bf, text = "Cancel",style="EF.Std.TButton",command=self.cancel)
         self.cancel_button.grid(row = 0, column = 1, sticky = "nswe",
                                 padx = 60,
-                                pady = 20)
+                                pady = 10)
+        self.status_bar = StatusBar(self, text = "Enter your 48 character license key, case insensitive", theme = theme)
+        self.status_bar.grid(row=3,column=0,columnspan=2,sticky="nswe")
         self.bind("<Return>",self.confirm)
         self.display2.bind("<Return>", self.confirm)
         self.bind("<Escape>",self.cancel)
         self.result = False
         self.display2.place_cursor()
-        center(self,670,141)
+        center(self,670,150)
         self.deiconify()
         self.wait_window()
         
     def confirm(self,event=None):
-        cset = set("ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-        self.license_key = "".join([c for c in "".join(self.display2.get_my_value().upper().split("-")) if c in cset])
-        self.result = True
-        self.destroy()
+        cset = set("ABCDEFGHIJKLMNPQRSTUVWXYZ0123456789")
+        self.license_key = "".join(c for c in "".join(self.display2.get_my_value().upper().split("-")) if c in cset)
+        valid = self.C.license_key_valid(self.license_key)
+        if valid:
+            self.result = True
+            self.destroy()
+        elif valid is None:
+            self.status_bar.change_text(f"License key invalid, contact {contact_email} for help   ")
+        elif not valid:
+            self.status_bar.change_text(f"License key expired, contact {contact_email} for help   ")
+        if not valid:
+            self.C.configsettings["License"] = ""
+            self.C.setup_config()
         
     def cancel(self,event=None):
         self.destroy()

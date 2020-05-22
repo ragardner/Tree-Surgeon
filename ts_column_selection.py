@@ -1,8 +1,10 @@
 #Copyright © 2020 R. A. Gardner
 
 from ts_extra_vars_and_funcs import *
-from ts_classes import *
-from ts_classes_c import *
+from ts_toplevels import *
+from ts_widgets import *
+from ts_classes_d import *
+
 import tkinter as tk
 from tkinter import ttk, filedialog
 from tksheet import Sheet
@@ -30,6 +32,7 @@ from openpyxl.styles import PatternFill
 from openpyxl.styles import Alignment
 import builtins
 from fastnumbers import isint, isintlike, isfloat, isreal
+
 
 class columnselection(tk.Frame):
     def __init__(self,parent,C):
@@ -236,12 +239,13 @@ class columnselection(tk.Frame):
             elif order == "Order: Top → Base":
                 idcol = hiers.pop(len(hiers) - 1)
             self.C.treeframe.sheet[:] = [row + list(repeat("",self.rowlen - len(row))) if len(row) < self.rowlen else row for row in self.C.treeframe.sheet]
-            self.C.treeframe.sheet, self.rowlen, idcol, newpc = self.C.treeframe.convert_flattened_to_normal(data = self.C.treeframe.sheet,
-                                                                                                              idcol = idcol,
-                                                                                                              parcols = hiers,
-                                                                                                              rowlen = self.rowlen,
-                                                                                                              order = order,
-                                                                                                              delcols = delcols)
+            self.C.treeframe.sheet, self.rowlen, idcol, newpc = self.C.treeframe.treebuilder.convert_flattened_to_normal(data = self.C.treeframe.sheet,
+                                                                                                                          idcol = idcol,
+                                                                                                                          parcols = hiers,
+                                                                                                                          rowlen = self.rowlen,
+                                                                                                                          order = order,
+                                                                                                                          delcols = delcols,
+                                                                                                                         warnings = self.C.treeframe.warnings)
             hiers = [newpc]
         self.C.treeframe.headers = [Header(name) for name in self.C.treeframe.fix_heads(self.C.treeframe.sheet.pop(0),self.rowlen)]
         self.C.treeframe.ic = idcol
@@ -249,6 +253,12 @@ class columnselection(tk.Frame):
         self.C.treeframe.pc = hiers[0]
         self.C.treeframe.row_len = int(self.rowlen)
         self.C.treeframe.set_metadata(headers = True)
-        self.C.treeframe.build_tree_start()
+        self.C.treeframe.sheet, self.C.treeframe.nodes, self.C.treeframe.warnings = self.C.treeframe.treebuilder.build(self.C.treeframe.sheet,
+                                                                                                                            self.C.treeframe.new_sheet,
+                                                                                                                            self.C.treeframe.row_len,
+                                                                                                                            self.C.treeframe.ic,
+                                                                                                                            self.C.treeframe.hiers,
+                                                                                                                            self.C.treeframe.nodes,
+                                                                                                                            self.C.treeframe.warnings)
         self.C.treeframe.populate(non_tsrgn_xl_file = self.non_tsrgn_xl_file)
         self.C.treeframe.show_warnings(str(self.C.open_dict['filepath']),str(self.C.open_dict['sheet']))

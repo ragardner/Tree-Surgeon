@@ -191,6 +191,23 @@ def theme_treeview_relief(theme = "dark"):
 def fixed_map(option, style):
     return [elm for elm in style.map('Treeview', query_opt=option) if elm[:2] != ('!disabled', '!selected')]
 
+def csv_delimiter_quotechar(data):
+    d = Counter(m.group() for m in re.finditer(r"""\t|,|\t'|'\t|\t"|"\t|,'|',|,"|",""", data))
+    if not d['\t'] and not d[',']:
+        if isinstance(data, str):
+            return '\t', '"'
+        else:
+            return None, None
+    if d['\t'] >= d[',']:
+        delimiter_ = "\t"
+    elif d['\t'] < d[',']:
+        delimiter_ = ","
+    if d['\t"'] + d[',"'] + d['"\t'] + d['",'] >= d["\t'"] + d[",'"] + d["'\t"] + d["',"]:
+        quotechar_ = '"'
+    elif d['\t"'] + d[',"'] + d['"\t'] + d['",'] < d["\t'"] + d[",'"] + d["'\t"] + d["',"]:
+        quotechar_ = "'"
+    return delimiter_, quotechar_
+
 colors = ('white', 'gray93', 'LightSkyBlue1',
           'light grey', 'antique white',
           'papaya whip', 'bisque', 'peach puff',

@@ -1,8 +1,9 @@
 #Copyright © 2020 R. A. Gardner
 
 from ts_extra_vars_and_funcs import *
-from ts_classes import *
-from ts_classes_c import *
+from ts_toplevels import *
+from ts_widgets import *
+
 import tkinter as tk
 from tkinter import ttk, filedialog
 from tksheet import Sheet

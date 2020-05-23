@@ -5536,7 +5536,7 @@ class ss_settings_chooser(tk.Toplevel):
                                     command=self.cancel)
         self.cancel_button.grid(row=1,column=1,sticky="nswe",padx=20,pady=(15,20))
         self.bind("<Escape>",self.cancel)
-        center(self,500,175)
+        center(self,500,165)
         self.deiconify()
         self.wait_window()
         

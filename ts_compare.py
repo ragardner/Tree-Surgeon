@@ -675,7 +675,7 @@ class treecompare(tk.Frame):
                        "info": []}
         dt = datetime.datetime.today()
         self.report['info'].append((f"Report Created: {dt.strftime('%A %d %B %Y %H-%M-%S')}", ))
-        self.heads1, addition = self.heads_comparison(self.data1[0].copy(), 1, self.report['info'])
+        self.heads1, addition = self.heads_comparison(self.data1[0].copy(), 1, [])
         treebuilder = TreeBuilder()
         self.sheet1, self.nodes1, addition, self.rns1 = treebuilder.build(self.data1,
                                                                           self.sheet1,
@@ -683,7 +683,7 @@ class treecompare(tk.Frame):
                                                                           self.ic1,
                                                                           self.parent_cols1,
                                                                           self.nodes1,
-                                                                          [],
+                                                                          addition,
                                                                           self.rns1,
                                                                           add_warnings = True,
                                                                           skip_1st = True,
@@ -693,14 +693,14 @@ class treecompare(tk.Frame):
             self.report['info'].append((f"WARNINGS - {sheetname_1} - ", ))
             self.report['info'].extend(addition)
             self.report['info'].append(("", ))
-        self.heads2, addition = self.heads_comparison(self.data2[0].copy(), 2, self.report['info'])
+        self.heads2, addition = self.heads_comparison(self.data2[0].copy(), 2, [])
         self.sheet2, self.nodes2, addition, self.rns2 = treebuilder.build(self.data2,
                                                                           self.sheet2,
                                                                           self.row_len2,
                                                                           self.ic2,
                                                                           self.parent_cols2,
                                                                           self.nodes2,
-                                                                          [],
+                                                                          addition,
                                                                           self.rns2,
                                                                           add_warnings = True,
                                                                           skip_1st = True,
@@ -709,7 +709,6 @@ class treecompare(tk.Frame):
         if addition:
             self.report['info'].append((f"WARNINGS - {sheetname_2} - ", ))
             self.report['info'].extend(addition)
-            self.report['info'].append(("", ))
         qhst1 = set(self.parent_cols1)
         qhst2 = set(self.parent_cols2)
         pcold = defaultdict(list)

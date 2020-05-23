@@ -26,7 +26,7 @@ from openpyxl.styles import Alignment
 from platform import system as get_os
 from fastnumbers import isint, isintlike, isfloat, isreal
 
-software_version_number = "2.64251"
+software_version_number = "2.64252"
 software_version_full = "version: " + software_version_number
 app_title = " Tree Surgeon©"
 contact_email = "ragardner@protonmail.com"
@@ -158,11 +158,11 @@ def theme_status_fg(theme = "dark blue"):
     
 def theme_treeview_selected_bg(theme = "dark blue"):
     if theme == "light blue":
-        return "#1a73e8"
+        return "#35619c"
     elif theme == "light green":
         return "#217346"
     elif theme == "dark blue":
-        return "#1a73e8"
+        return "#35619c"
     elif theme == "dark green":
         return "#36897f"
 

@@ -16,11 +16,11 @@
  - Save program data and sheet as .xlsx, .json
  - Run as an API to export flattened hierarchies
 
-![alt text](https://i.imgur.com/x3I4sHI.jpg)
+![alt text](https://i.imgur.com/o1rtw3O.jpg)
 
 ___
 
-![alt text](https://i.imgur.com/OnUIBth.jpg)
+![alt text](https://i.imgur.com/ICXZVuo.jpg)
 
 ___
 

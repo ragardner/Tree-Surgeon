@@ -210,7 +210,7 @@ class columnselection(tk.Frame):
         self.C.treeframe.sheet = self.sheetdisplay.set_sheet_data(data = self.C.treeframe.sheet,
                                                                   redraw=True)
         self.sheetdisplay.headers(newheaders=0)
-        if len(self.C.treeframe.sheet)  < 4000:
+        if len(self.C.treeframe.sheet)  < 3000:
             self.sheetdisplay.set_all_cell_sizes_to_text()
         self.selector.detect_id_col()
         self.selector.detect_par_cols()

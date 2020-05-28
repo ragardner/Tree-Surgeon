@@ -467,8 +467,7 @@ class treecompare(tk.Frame):
 
     def load_display1(self):
         self.row_len1 = len(max(self.data1,key=len))
-        self.sheetdisplay1.data_reference(newdataref=self.data1,redraw=False)
-        self.sheetdisplay1.set_all_cell_sizes_to_text()
+        self.sheetdisplay1.data_reference(newdataref=self.data1,redraw=True)
         self.selector_1.set_columns([h for h in self.data1[0]])
         self.selector_1.detect_id_col()
         self.selector_1.detect_par_cols()
@@ -607,8 +606,7 @@ class treecompare(tk.Frame):
 
     def load_display2(self):
         self.row_len2 = len(max(self.data2,key=len))
-        self.sheetdisplay2.data_reference(newdataref=self.data2,redraw=False)
-        self.sheetdisplay2.set_all_cell_sizes_to_text()
+        self.sheetdisplay2.data_reference(newdataref=self.data2,redraw=True)
         self.selector_2.set_columns([h for h in self.data2[0]])
         self.selector_2.detect_id_col()
         self.selector_2.detect_par_cols()

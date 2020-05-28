@@ -27,7 +27,7 @@ from platform import system as get_os
 from fastnumbers import isint, isintlike, isfloat, isreal
 
 software_version_number = "2.64252"
-software_version_full = "version: " + software_version_number
+software_version_full = "Software version: " + software_version_number
 app_title = " Tree Surgeon©"
 contact_email = "ragardner@protonmail.com"
 website1 = "github.com/ragardner"
@@ -516,7 +516,7 @@ M8yAZsyAmcyAzMyA/8yqAMyqM8yqZsyqmcyqzMyq/8zVAMzVM8zVZszVmczVzMzV/8z/AMz/M8z/Zsz/
 zP8r//9VAP9VM/9VZv9Vmf9VzP9V//+AAP+AM/+AZv+Amf+AzP+A//+qAP+qM/+qZv+qmf+qzP+q///VAP/VM//VZv/Vmf/VzP/V////AP//M///Zv//mf//zP///wAAAAAA
 AAAAAAAAAAhVAGMIHEiwYMF9CBMqXIhQ4D6HDBU6nAgx4sCHMRpWlAix4kWOGTWCTPhR5MiSJkFuTDmS4UqMKFnCnMmxJc2UMUt2fEmTYkiLFDFGrMlzqEaDSAsGBAA7"""
 )
-contact_info = f" Copyright © 2020 R. A. Gardner.\n {contact_email}\n {website1}\n {website2}"
+contact_info = f" {software_version_full}\n Copyright © 2020 R. A. Gardner.\n {contact_email}\n {website1}\n {website2}"
 
 about_basic = (
 """This program is for management of hierarchy based master data which is stored in table

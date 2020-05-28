@@ -119,9 +119,8 @@ class export_flattened_popup(tk.Toplevel):
                                   header_font = ("Calibri", 13, "normal"),
                                   outline_thickness = 0)
         self.sheetdisplay.enable_bindings("enable_all")
-        self.sheetdisplay.extra_bindings("begin_edit_cell_use_keypress", self.begin_edit)
-        self.sheetdisplay.extra_bindings("escape_edit_cell", self.escape_edit)
-        self.sheetdisplay.extra_bindings("edit_cell", self.escape_edit)
+        self.sheetdisplay.extra_bindings("begin_edit_cell", self.begin_edit)
+        self.sheetdisplay.extra_bindings("end_edit_cell", self.end_edit)
         self.sheetdisplay.headers(newheaders = 0)
         self.sheetdisplay.grid(row=0,column=1,rowspan=7,sticky="nswe")
 
@@ -158,7 +157,7 @@ class export_flattened_popup(tk.Toplevel):
         self.deiconify()
         self.wait_window()
 
-    def escape_edit(self, event = None):
+    def end_edit(self, event = None):
         self.bind("<Escape>",self.cancel)
         
     def begin_edit(self, event = None):
@@ -174,9 +173,8 @@ class export_flattened_popup(tk.Toplevel):
 
     def enable_widgets(self):
         self.sheetdisplay.enable_bindings("enable_all")
-        self.sheetdisplay.extra_bindings("begin_edit_cell_use_keypress", self.begin_edit)
-        self.sheetdisplay.extra_bindings("escape_edit_cell", self.escape_edit)
-        self.sheetdisplay.extra_bindings("edit_cell", self.escape_edit)
+        self.sheetdisplay.extra_bindings("begin_edit_cell", self.begin_edit)
+        self.sheetdisplay.extra_bindings("end_edit_cell", self.end_edit)
         self.sheetdisplay.basic_bindings(True)
         self.save_button.config(state="normal")
         self.clipboard_indent_button.config(state="normal")
@@ -188,9 +186,8 @@ class export_flattened_popup(tk.Toplevel):
     def disable_widgets(self):
         self.build_button.config(state="disabled")
         self.sheetdisplay.disable_bindings("disable_all")
-        self.sheetdisplay.extra_bindings("begin_edit_cell_use_keypress", None)
-        self.sheetdisplay.extra_bindings("escape_edit_cell", None)
-        self.sheetdisplay.extra_bindings("edit_cell", None)
+        self.sheetdisplay.extra_bindings("begin_edit_cell", None)
+        self.sheetdisplay.extra_bindings("end_edit_cell", None)
         self.sheetdisplay.basic_bindings(False)
         self.save_button.config(state="disabled")
         self.clipboard_json_button.config(state="disabled")
@@ -267,7 +264,6 @@ class export_flattened_popup(tk.Toplevel):
                                                                                      self.add_index_button.get_checked(),
                                                                                      self.rename_id_col_button.get_checked()),
                                                          verify = False)
-        self.sheetdisplay.set_all_cell_sizes_to_text()
         self.stop_work("Sheet successfully flattened!")
         
     def save_as(self):
@@ -363,9 +359,8 @@ class post_import_changes_popup(tk.Toplevel):
                                           "arrowkeys"))
         self.sheetdisplay.headers(newheaders=["Date","User","Type","ID/Name/Number","Old Value","New Value"])
         self.sheetdisplay.row_index(0)
-        self.sheetdisplay.data_reference(newdataref=self.changes,reset_col_positions=False,reset_row_positions=False,redraw=False)
-        self.sheetdisplay.display_subset_of_columns(indexes=[1,2,3,4,5],enable=True,reset_col_positions=False)
-        self.sheetdisplay.set_all_cell_sizes_to_text()
+        self.sheetdisplay.data_reference(newdataref=self.changes,reset_col_positions=False,reset_row_positions=True,redraw=False)
+        self.sheetdisplay.display_subset_of_columns(indexes=[1,2,3,4,5],enable=True,reset_col_positions=True)
         for i, b in enumerate(reversed(self.successful)):
             if b:
                 self.sheetdisplay.highlight_cells(row = i, canvas = "row_index", bg = theme_green_bg(theme), fg = theme_green_fg(theme))
@@ -426,10 +421,15 @@ class changelog_popup(tk.Toplevel):
         self.find_up_button.pack(side="left",fill="x")
         self.find_down_button = button(self.find_frame,text="▼",command=self.find_down)
         self.find_down_button.pack(side="left",fill="x")
-        self.changelog = self.C.changelog[::-1]
         
         self.sheetdisplay = Sheet(self,
                                   theme = theme,
+                                  headers = ["Date","User","Type","ID/Name/Number","Old Value","New Value"],
+                                  displayed_columns = [1,2,3,4,5],
+                                  all_columns_displayed = False,
+                                  row_index = 0,
+                                  startup_select = (len(self.C.changelog) - 1, len(self.C.changelog), "rows"),
+                                  data = self.C.changelog,
                                   row_index_align = "w",
                                   header_font = ("Calibri", 13, "normal"),
                                        outline_thickness=0)
@@ -442,32 +442,13 @@ class changelog_popup(tk.Toplevel):
                                           "double_click_row_resize",
                                           "row_select",
                                           "arrowkeys"))
-        self.sheetdisplay.headers(newheaders=["Date","User","Type","ID/Name/Number","Old Value","New Value"])
-        self.sheetdisplay.row_index(0)
-        self.sheetdisplay.data_reference(newdataref=self.changelog,reset_col_positions=False,reset_row_positions=True,redraw=False)
-        self.sheetdisplay.display_subset_of_columns(indexes=[1,2,3,4,5],enable=True,reset_col_positions=False)
         self.red_bg = theme_red_bg(theme)
         self.green_bg = theme_green_bg(theme)
         self.red_fg = theme_red_fg(theme)
         self.green_fg = theme_green_fg(theme)
-        self.sheetdisplay.highlight_cells(column = 4,
-                                          canvas = "header",
-                                          bg = self.red_bg,
-                                          fg = self.red_fg)
-        self.sheetdisplay.highlight_cells(column = 5,
-                                          canvas = "header",
-                                          bg = self.green_bg,
-                                          fg = self.green_fg)
-        for r in range(len(self.changelog)):
-            self.sheetdisplay.highlight_cells(row = r,
-                                              column = 4,
-                                              bg = self.red_bg,
-                                              fg = self.red_fg)
-            self.sheetdisplay.highlight_cells(row = r,
-                                              column = 5,
-                                              bg = self.green_bg,
-                                              fg = self.green_fg)
-        self.sheetdisplay.set_all_cell_sizes_to_text()
+        self.sheetdisplay.highlight_columns(columns = 4, bg = self.red_bg, fg = self.red_fg)
+        self.sheetdisplay.highlight_columns(columns = 5, bg = self.green_bg, fg = self.green_fg)
+                                              
         self.sheetdisplay.set_width_of_index_to_text()
         self.sheetdisplay.grid(row=1,column=0,sticky="nswe")
         self.status_bar = StatusBar(self, text = self.total_changes, theme = theme)
@@ -513,16 +494,10 @@ class changelog_popup(tk.Toplevel):
                     break
         self.C.snapshot_prune_changelog(up_to)
         self.C.changelog[:up_to + 1] = []
-        self.changelog = self.C.changelog[::-1]
         self.sheetdisplay.headers(newheaders=["Date","User","Type","ID/Name/Number","Old Value","New Value"])
         self.sheetdisplay.row_index(newindex=0)
-        self.sheetdisplay.data_reference(newdataref=self.changelog,reset_col_positions=False,reset_row_positions=True,redraw=False)
+        self.sheetdisplay.data_reference(newdataref=self.C.changelog,reset_col_positions=False,reset_row_positions=True,redraw=False)
         self.sheetdisplay.display_subset_of_columns(indexes=[1,2,3,4,5],enable=True,reset_col_positions=False)
-        self.sheetdisplay.dehighlight_cells(all_ = True)
-        for r in range(len(self.changelog)):
-            self.sheetdisplay.highlight_cells(row = r, column = 4, bg = self.red_bg, fg = self.red_fg)
-            self.sheetdisplay.highlight_cells(row = r, column = 5, bg = self.green_bg, fg = self.green_fg)
-        self.sheetdisplay.set_all_cell_sizes_to_text()
         self.total_changes = "Total changes: " + str(len(self.C.changelog)) + " | "
         self.status_bar.config(text = self.total_changes)
         self.C.C.status_bar.change_text(self.C.set_status_bar())
@@ -608,7 +583,7 @@ class changelog_popup(tk.Toplevel):
                 self.wb_ = Workbook()
                 ws = self.wb_.active
                 ws.append(["Date","User","Type","ID/Name/Number","Old Value","New Value"])
-                for rn,row in enumerate(self.changelog):
+                for rn,row in enumerate(self.C.changelog):
                     ws.append(row)
                     if not rn % 20:
                         self.update()
@@ -636,7 +611,7 @@ class changelog_popup(tk.Toplevel):
                 with open(newfile,"w",newline="") as fh:
                     writer = csv_module.writer(fh,dialect=csv_module.excel_tab,lineterminator="\n")
                     writer.writerow(["Date","User","Type","ID/Name/Number","Old Value","New Value"])
-                    for rn,row in enumerate(self.changelog):
+                    for rn,row in enumerate(self.C.changelog):
                         writer.writerow(row)
                         if not rn % 20:
                             self.update()
@@ -645,7 +620,7 @@ class changelog_popup(tk.Toplevel):
                             self.status_bar.change_text("".join((self.total_changes,"Saving...  changes: ",str(rn))))
             elif newfile.lower().endswith(".json"):
                 with open(newfile,"w",newline="") as fh:
-                    fh.write(json.dumps(self.C.dump_full_sheet_to_json(["Date","User","Type","ID/Name/Number","Old Value","New Value"],self.changelog,include_headers=True)))
+                    fh.write(json.dumps(self.C.dump_full_sheet_to_json(["Date","User","Type","ID/Name/Number","Old Value","New Value"],self.C.changelog,include_headers=True)))
         except Exception as error_msg:
             self.try_to_close_wb()
             self.grab_set()
@@ -678,7 +653,7 @@ class changelog_popup(tk.Toplevel):
                 self.wb_ = Workbook()
                 ws = self.wb_.active
                 ws.append(["Date","User","Type","ID/Name/Number","Old Value","New Value"])
-                for rn,row in enumerate(islice(self.changelog, from_row, to_row)):
+                for rn,row in enumerate(islice(self.C.changelog, from_row, to_row)):
                     ws.append(row)
                     if not rn % 20:
                         self.update()
@@ -706,7 +681,7 @@ class changelog_popup(tk.Toplevel):
                 with open(newfile,"w",newline="") as fh:
                     writer = csv_module.writer(fh,dialect=csv_module.excel_tab,lineterminator="\n")
                     writer.writerow(["Date","User","Type","ID/Name/Number","Old Value","New Value"])
-                    for rn,row in enumerate(islice(self.changelog, from_row, to_row)):
+                    for rn,row in enumerate(islice(self.C.changelog, from_row, to_row)):
                         writer.writerow(row)
                         if not rn % 20:
                             self.update()
@@ -715,7 +690,7 @@ class changelog_popup(tk.Toplevel):
                             self.status_bar.change_text("".join((self.total_changes,"Saving...  changes: ",str(rn))))
             elif newfile.lower().endswith(".json"):
                 with open(newfile,"w",newline="") as fh:
-                    fh.write(json.dumps(self.C.dump_full_sheet_to_json(["Date","User","Type","ID/Name/Number","Old Value","New Value"],self.changelog[from_row:to_row],include_headers=True)))
+                    fh.write(json.dumps(self.C.dump_full_sheet_to_json(["Date","User","Type","ID/Name/Number","Old Value","New Value"],self.C.changelog[from_row:to_row],include_headers=True)))
         except Exception as error_msg:
             self.try_to_close_wb()
             self.grab_set()
@@ -729,7 +704,7 @@ class changelog_popup(tk.Toplevel):
         if not self.word:
             return
         x = self.word.lower()
-        for rn,row in enumerate(self.changelog):
+        for rn,row in enumerate(self.C.changelog):
             for colno,cell in enumerate(row):
                 if x in cell.lower():
                     if colno == 0:
@@ -802,15 +777,8 @@ class changelog_popup(tk.Toplevel):
         if newfind == False:
             self.find_window.delete(0,"end")
         self.find_results_label.config(text="0/0")
-        for r in range(len(self.changelog)):
-            self.sheetdisplay.highlight_cells(row = r,
-                                              column = 4,
-                                              bg = self.red_bg,
-                                              fg = self.red_fg)
-            self.sheetdisplay.highlight_cells(row = r,
-                                              column = 5,
-                                              bg = self.green_bg,
-                                              fg = self.green_fg)
+        self.sheetdisplay.highlight_columns(columns = 4, bg = self.red_bg, fg = self.red_fg)
+        self.sheetdisplay.highlight_columns(columns = 5, bg = self.green_bg, fg = self.green_fg)
         self.sheetdisplay.refresh()
         
     def cancel(self,event=None):
@@ -2061,7 +2029,6 @@ class column_manager_popup(tk.Toplevel):
         self.cols_view.bind("<Double-Button-1>",self.cols_view_double_b1)
         self.cols_view.bind("<Delete>",self.popup_del_col)
 
-        # ==================== CONDITIONAL FORMATTING FRAME ====================
         self.displayed_colors_dct = {"Yellow": "yellow",
                                      "Red, normal": "firebrick1",
                                      "Brown": "#734021",
@@ -3373,7 +3340,8 @@ class view_id_popup(tk.Toplevel):
         r = event[0]
         c = event[1]
         curr_ = self.sheetdisplay.get_currently_selected(True, True)
-        newtext = self.sheetdisplay.get_text_editor_value(r = r,
+        newtext = self.sheetdisplay.get_text_editor_value(event,
+                                                          r = r,
                                                           c = c,
                                                           set_data_ref_on_destroy = False,
                                                           move_down = False if event[2] == "Escape" else c == curr_[1] and r == curr_[0],
@@ -3707,9 +3675,8 @@ class merge_sheets_popup(tk.Toplevel):
                                           ("delete_key", self.del_in_sheet),
                                           ("ctrl_v", self.ctrl_v_in_sheet),
                                           ("ctrl_z", self.ctrl_z_in_sheet),
-                                          ("begin_edit_cell_use_keypress", self.begin_edit_cell),
-                                          ("escape_edit_cell", self.escape_edit_cell),
-                                          ("edit_cell", self.edit_cell_in_sheet)
+                                          ("begin_edit_cell", self.begin_edit_cell),
+                                          ("end_edit_cell", self.edit_cell_in_sheet)
                                           ])
         self.sheetdisplay.headers(newheaders = 0)
         self.C.new_sheet = [[h.name for h in self.C.headers]] + [list(repeat("", len(self.C.headers))) for r in range(2000)]
@@ -3729,9 +3696,6 @@ class merge_sheets_popup(tk.Toplevel):
 
     def begin_edit_cell(self, event = None):
         self.unbind("<Escape>")
-
-    def escape_edit_cell(self, event = None):
-        self.bind("<Escape>",self.cancel)
 
     def toggle_left_panel(self, event = None):
         if self.showing_left:
@@ -3807,6 +3771,8 @@ class merge_sheets_popup(tk.Toplevel):
 
     def edit_cell_in_sheet(self, event = None):
         self.bind("<Escape>",self.cancel)
+        if event[2] == "Escape":
+            return
         idcol = self.selector.get_id_col()
         parcols = self.selector.get_par_cols()
         if event[1] == idcol or event[1] in parcols or event[0] == 0:
@@ -3863,8 +3829,7 @@ class merge_sheets_popup(tk.Toplevel):
             self.selector.set_par_cols(self.pcols)
             self.stop_work("Ready to merge sheets")
         self.sheetdisplay.deselect("all")
-        self.sheetdisplay.data_reference(newdataref=self.C.new_sheet,reset_col_positions=False,reset_row_positions=False,redraw=False)
-        self.sheetdisplay.set_all_cell_sizes_to_text()
+        self.sheetdisplay.data_reference(newdataref=self.C.new_sheet,reset_col_positions=True,reset_row_positions=True,redraw=False)
         self.sheetdisplay.refresh()
         self.file_opened = "n/a - Data obtained from clipboard"
         self.sheet_opened = "n/a"
@@ -4002,8 +3967,7 @@ class merge_sheets_popup(tk.Toplevel):
             self.C.new_sheet = []
             self.stop_work("Error: File/sheet contained no data")
             return
-        self.sheetdisplay.data_reference(newdataref=self.C.new_sheet,reset_col_positions=True,reset_row_positions=True,redraw=False)
-        self.sheetdisplay.set_all_cell_sizes_to_text()
+        self.sheetdisplay.data_reference(newdataref=self.C.new_sheet,reset_col_positions=True,reset_row_positions=True,redraw=True)
         self.open_file_display.set_my_value(filepath)
         self.file_opened = os.path.basename(self.open_file_display.get_my_value())
 
@@ -4033,8 +3997,7 @@ class merge_sheets_popup(tk.Toplevel):
         self.C.new_sheet[:] = [r + list(repeat("",rl - len(r))) for r in self.C.new_sheet]
         self.select_sheet_button.config(state="disabled")
         self.load_display([h for h in self.C.new_sheet[0]])
-        self.sheetdisplay.data_reference(newdataref=self.C.new_sheet,reset_col_positions=True,reset_row_positions=True,redraw=False)
-        self.sheetdisplay.set_all_cell_sizes_to_text()
+        self.sheetdisplay.data_reference(newdataref=self.C.new_sheet,reset_col_positions=True,reset_row_positions=True,redraw=True)
 
     def load_display(self,cols):
         self.selector.set_columns(cols)
@@ -4071,9 +4034,8 @@ class merge_sheets_popup(tk.Toplevel):
                                           ("delete_key", self.del_in_sheet),
                                           ("ctrl_v", self.ctrl_v_in_sheet),
                                           ("ctrl_z", self.ctrl_z_in_sheet),
-                                          ("edit_cell", self.edit_cell_in_sheet),
-                                          ("begin_edit_cell_use_keypress", self.begin_edit_cell),
-                                          ("escape_edit_cell", self.escape_edit_cell)
+                                          ("begin_edit_cell", self.begin_edit_cell),
+                                          ("end_edit_cell", self.edit_cell_in_sheet)
                                           ])
 
     def disable_widgets(self):
@@ -4099,9 +4061,8 @@ class merge_sheets_popup(tk.Toplevel):
                                           ("delete_key", None),
                                           ("ctrl_v", None),
                                           ("ctrl_z", None),
-                                          ("edit_cell", None),
-                                          ("begin_edit_cell_use_keypress", None),
-                                          ("escape_edit_cell", None)
+                                          ("begin_edit_cell", None),
+                                          ("end_edit_cell", None)
                                           ])
         self.update()
 
@@ -4188,15 +4149,12 @@ class get_clipboard_data_popup(tk.Toplevel):
                                           ("delete_key", self.del_in_sheet),
                                           ("ctrl_v", self.ctrl_v_in_sheet),
                                           ("ctrl_z", self.ctrl_z_in_sheet),
-                                          ("edit_cell", self.edit_cell_in_sheet),
-                                          ("begin_edit_cell_use_keypress", self.begin_edit_cell),
-                                          ("escape_edit_cell", self.escape_edit_cell),
-                                          ("edit_cell", self.escape_edit_cell)
+                                          ("end_edit_cell", self.edit_cell_in_sheet),
+                                          ("begin_edit_cell", self.begin_edit_cell)
                                           ])
         self.sheetdisplay.grid(row=0,column=1,rowspan=4,sticky="nswe")
-        self.sheetdisplay.data_reference(newdataref=self.C.new_sheet,redraw=False)
+        self.sheetdisplay.data_reference(newdataref=self.C.new_sheet,redraw=True)
         self.sheetdisplay.headers(newheaders=0)
-        self.sheetdisplay.set_all_cell_sizes_to_text()
         
         self.button_frame = frame(self, theme = theme)
         self.button_frame.grid(row=2,column=0,sticky="nswe")
@@ -4224,9 +4182,6 @@ class get_clipboard_data_popup(tk.Toplevel):
 
     def begin_edit_cell(self, event = None):
         self.unbind("<Escape>")
-
-    def escape_edit_cell(self, event = None):
-        self.bind("<Escape>",self.cancel)
 
     def reset_selectors(self, event = None):
         idcol = self.selector.get_id_col()
@@ -4303,6 +4258,9 @@ class get_clipboard_data_popup(tk.Toplevel):
         self.reset_selectors()
 
     def edit_cell_in_sheet(self, event = None):
+        self.bind("<Escape>",self.cancel)
+        if event[2] == "Escape":
+            return
         idcol = self.selector.get_id_col()
         parcols = self.selector.get_par_cols()
         ancparcols = self.flattened_selector.get_par_cols()

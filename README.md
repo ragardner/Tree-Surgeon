@@ -1,5 +1,4 @@
-# Tree-Surgeon (Page currently under construction)
-![python](https://img.shields.io/badge/windows-10-blue) ![python](https://img.shields.io/badge/python-3.6+-blue)
+# Tree-Surgeon ![python](https://img.shields.io/badge/windows-10-blue) ![python](https://img.shields.io/badge/python-3.6+-blue) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/ragardner/Tree-Surgeon) [![GitHub Release Date](https://img.shields.io/github/release-date-pre/ragardner/Tree-Surgeon.svg)](https://github.com/ragardner/Tree-Surgeon/releases) ![GitHub All Releases](https://img.shields.io/github/downloads/ragardner/Tree-Surgeon/total)
 
 ## Features
 
@@ -16,12 +15,23 @@
  - Save program data and sheet as .xlsx, .json
  - Run as an API to export flattened hierarchies
 
-![alt text](https://i.imgur.com/o1rtw3O.jpg)
+___
+
+![alt text](https://i.imgur.com/x3I4sHI.jpg)
 
 ___
 
-![alt text](https://i.imgur.com/ICXZVuo.jpg)
+| Program Type      | Download Link                                                                     |
+| ------------------| ---------------------------------------------------------------------------------:|
+| Portable Folder   |                                                                                   |
+| Python DLL        |                                                                                   |
 
-___
+If running as a Python script the following libraries are required:
+
+| Library       | Webpage                            |
+| ------------- | ----------------------------------:|
+| tksheet       | https://pypi.org/project/tksheet/  |
+| lxml          | https://pypi.org/project/lxml/     |
+| openpyxl      | https://pypi.org/project/openpyxl/ |
 
 Contact ragardner@protonmail.com for more information

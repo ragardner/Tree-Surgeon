@@ -23,8 +23,8 @@ ___
 
 | Program Type           | Download Link                                                                          |
 | -----------------------| --------------------------------------------------------------------------------------:|
-| Portable Folder .exe   | https://github.com/ragardner/Tree-Surgeon/releases/download/2.64252.1/Tree.Surgeon.zip |
-| Python Source          | https://github.com/ragardner/Tree-Surgeon/archive/2.64252.1.zip                        |
+| Portable Folder .exe   | https://github.com/ragardner/Tree-Surgeon/releases/download/2.64252.2/Tree.Surgeon.zip |
+| Python Source          | https://github.com/ragardner/Tree-Surgeon/archive/2.64252.2.zip                        |
 
 If running as a Python script the following libraries are required:
 

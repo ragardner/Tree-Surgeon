@@ -28,10 +28,11 @@ ___
 
 If running as a Python script the following libraries are required:
 
-| Library       | Webpage                            |
-| ------------- | ----------------------------------:|
-| tksheet       | https://pypi.org/project/tksheet/  |
-| lxml          | https://pypi.org/project/lxml/     |
-| openpyxl      | https://pypi.org/project/openpyxl/ |
+| Library       | Webpage                               |
+| ------------- | -------------------------------------:|
+| tksheet       | https://pypi.org/project/tksheet/     |
+| lxml          | https://pypi.org/project/lxml/        |
+| openpyxl      | https://pypi.org/project/openpyxl/    |
+| fastnumbers   | https://pypi.org/project/fastnumbers/ |
 
 Contact ragardner@protonmail.com for more information

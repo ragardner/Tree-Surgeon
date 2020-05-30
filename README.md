@@ -26,13 +26,6 @@ ___
 | Portable Folder .exe   | https://github.com/ragardner/Tree-Surgeon/releases/download/2.64252.2/Tree.Surgeon.zip |
 | Python Source          | https://github.com/ragardner/Tree-Surgeon/archive/2.64252.2.zip                        |
 
-If running as a Python script the following libraries are required:
-
-| Library       | Webpage                               |
-| ------------- | -------------------------------------:|
-| tksheet       | https://pypi.org/project/tksheet/     |
-| lxml          | https://pypi.org/project/lxml/        |
-| openpyxl      | https://pypi.org/project/openpyxl/    |
-| fastnumbers   | https://pypi.org/project/fastnumbers/ |
+If running as a Python script [these](https://github.com/ragardner/Tree-Surgeon/blob/master/requirements.txt) libraries are required:
 
 Contact ragardner@protonmail.com for more information

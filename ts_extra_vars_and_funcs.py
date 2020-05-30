@@ -26,7 +26,7 @@ from openpyxl.styles import Alignment
 from platform import system as get_os
 from fastnumbers import isint, isintlike, isfloat, isreal
 
-software_version_number = "2.64252"
+software_version_number = "2.64254"
 software_version_full = "Software version: " + software_version_number
 app_title = " Tree Surgeon©"
 contact_email = "ragardner@protonmail.com"

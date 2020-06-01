@@ -1,4 +1,4 @@
-tksheet == 4.8.1
+tksheet == 4.8.2
 fastnumbers == 3.0.0
 lxml == 4.5.1
 openpyxl == 3.0.3

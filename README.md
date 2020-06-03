@@ -8,8 +8,6 @@
  - Allows hierarchies to be exchanged across business without requiring access to main systems
  - Standard save format is a normal Excel file .xlsx
 
-___
-
 ## Features
 
  - Manage by editing the sheet or right clicking in the treeview

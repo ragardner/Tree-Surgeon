@@ -4,7 +4,7 @@
  - Allows users to work more intuitively with hierarchies
  - Speeds up manual hierarchy design, development and maintenance
  - Facilitates auditing of hierarchies, such as chart of accounts for financial systems
- - Systems implementations that require hierarchy and master data design as project deliverable
+ - Very useful for systems implementations that require hierarchy and master data design as project deliverable
  - Allows hierarchies to be exchanged across business without requiring access to main systems
  - Standard save format is a normal Excel file .xlsx
 

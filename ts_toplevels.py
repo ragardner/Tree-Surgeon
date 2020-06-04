@@ -436,6 +436,7 @@ class changelog_popup(tk.Toplevel):
         self.sheetdisplay.enable_bindings(("single",
                                            "copy",
                                            "drag_select",
+                                           "row_width_resize",
                                           "column_width_resize",
                                           "double_click_column_resize",
                                           "row_height_resize",
@@ -448,8 +449,6 @@ class changelog_popup(tk.Toplevel):
         self.green_fg = theme_green_fg(theme)
         self.sheetdisplay.highlight_columns(columns = 4, bg = self.red_bg, fg = self.red_fg)
         self.sheetdisplay.highlight_columns(columns = 5, bg = self.green_bg, fg = self.green_fg)
-                                              
-        self.sheetdisplay.set_width_of_index_to_text()
         self.sheetdisplay.grid(row=1,column=0,sticky="nswe")
         self.status_bar = StatusBar(self, text = self.total_changes, theme = theme)
         self.status_bar.grid(row=2,column=0,sticky="nswe")

@@ -3630,7 +3630,7 @@ class merge_sheets_popup(tk.Toplevel):
         self.confirm_button.grid(row=0,column=0,sticky="nswe",padx=(20,35),pady=(20,20))
         self.cancel_button = button(self.button_frame,text="Cancel",style="EF.Std.TButton",command=self.cancel)
         self.cancel_button.grid(row=0,column=1,sticky="nswe",padx=(35,20),pady=(20,20))
-        self.status = StatusBar(self.l_frame,text="Open a file to import data", theme = theme)
+        self.status = StatusBar(self.l_frame,text="Note: Opening files resets current merge sheet", theme = theme)
         self.status.grid(row=5,column=0, columnspan = 2, sticky="ew")
         self.result = False
         self.add_new_ids = True
@@ -3678,9 +3678,7 @@ class merge_sheets_popup(tk.Toplevel):
                                           ("end_edit_cell", self.edit_cell_in_sheet)
                                           ])
         self.sheetdisplay.headers(newheaders = 0)
-        self.C.new_sheet = [[h.name for h in self.C.headers]] + [list(repeat("", len(self.C.headers))) for r in range(2000)]
-        self.C.new_sheet = self.sheetdisplay.set_sheet_data(self.C.new_sheet, verify = False)
-        self.selector.set_columns([h for h in self.C.new_sheet[0]] if self.C.new_sheet else [])
+        self.setup_selectors()
         self.selector.detect_id_col()
         self.selector.detect_par_cols()
         self.sheetdisplay.set_all_cell_sizes_to_text()
@@ -3693,6 +3691,12 @@ class merge_sheets_popup(tk.Toplevel):
         self.deiconify()
         self.wait_window()
 
+    def setup_selectors(self, event = None):
+        self.sheetdisplay.deselect("all")
+        self.C.new_sheet = [[h.name for h in self.C.headers]] + [list(repeat("", len(self.C.headers))) for r in range(2000)]
+        self.C.new_sheet = self.sheetdisplay.set_sheet_data(self.C.new_sheet, verify = False)
+        self.selector.set_columns([h for h in self.C.new_sheet[0]] if self.C.new_sheet else [])
+
     def begin_edit_cell(self, event = None):
         self.unbind("<Escape>")
 
@@ -3702,7 +3706,6 @@ class merge_sheets_popup(tk.Toplevel):
             self.l_frame.grid_forget()
             self.showing_left = False
             self.toggle_left_button.config(text = "⯈")
-
         else:
             self.grid_columnconfigure(0, weight = 1, uniform = "x")
             self.l_frame.grid(row = 0, column = 0, sticky = "nswe")
@@ -3783,7 +3786,7 @@ class merge_sheets_popup(tk.Toplevel):
         try:
             temp_data = self.C.clipboard_get()
         except:
-            self.stop_work("Error: Error getting clipboard data")
+            self.stop_work("Error: Error getting clipboard data", sels = True)
             return
         try:
             if temp_data.startswith("{") and temp_data.endswith("}"):
@@ -3791,7 +3794,7 @@ class merge_sheets_popup(tk.Toplevel):
             else:
                 delimiter_,quotechar_ = csv_delimiter_quotechar(temp_data)
                 if delimiter_ is None:
-                    self.stop_work("Error: Clipboard contained no appropriate data")
+                    self.stop_work("Error: Clipboard contained no appropriate data", sels = True)
                     return
                 for rn,r in enumerate(csv_module.reader(io.StringIO(temp_data),delimiter=delimiter_,quotechar=quotechar_,skipinitialspace=True)):
                     try:
@@ -3804,10 +3807,10 @@ class merge_sheets_popup(tk.Toplevel):
                             return
                         self.status.change_text("Loading...  rows: " + str(rn))
         except:
-            self.stop_work("Error: Error parsing clipboard data")
+            self.stop_work("Error: Error parsing clipboard data", sels = True)
             return
         if not self.C.new_sheet:
-            self.stop_work("Error: Clipboard contained no appropriate data")
+            self.stop_work("Error: Clipboard contained no appropriate data", sels = True)
             return
         rl = len(max(self.C.new_sheet, key = len))
         self.C.new_sheet[:] = [r + list(repeat("",rl - len(r))) for r in self.C.new_sheet]
@@ -3871,19 +3874,19 @@ class merge_sheets_popup(tk.Toplevel):
         self.reset()
         filepath = filedialog.askopenfilename(parent=self,title="Select file")
         if not filepath:
-            self.stop_work("Open a file to import data")
+            self.stop_work("Open a file to import data", sels = True)
             return
         try:
             filepath = os.path.normpath(filepath)
         except:
-            self.stop_work("Error: filepath invalid")
+            self.stop_work("Error: filepath invalid", sels = True)
             return
         if not filepath.lower().endswith((".json",".xlsx",".xls",".xlsm",".csv",".tsv")):
-            self.stop_work("Error: please select json/excel/csv   ")
+            self.stop_work("Error: please select json/excel/csv   ", sels = True)
             return
         check = os.path.isfile(filepath)
         if check == False:
-            self.stop_work("Error: filepath invalid")
+            self.stop_work("Error: filepath invalid", sels = True)
             return
         try:
             if filepath.lower().endswith((".csv",".tsv")):
@@ -3891,7 +3894,7 @@ class merge_sheets_popup(tk.Toplevel):
                     temp_data = fh.read()
                 delimiter_,quotechar_ = csv_delimiter_quotechar(temp_data)
                 if delimiter_ is None:
-                    self.stop_work("Error: File contained no appropriate data")
+                    self.stop_work("Error: File contained no appropriate data", sels = True)
                     return
                 for rn,r in enumerate(csv_module.reader(io.StringIO(temp_data),delimiter=delimiter_,quotechar=quotechar_,skipinitialspace=True)):
                     try:
@@ -3912,11 +3915,11 @@ class merge_sheets_popup(tk.Toplevel):
                 json_format = self.C.get_json_format(j)
                 if not json_format:
                     self.C.new_sheet = []
-                    self.stop_work("Error opening file, could not find data of correct format")
+                    self.stop_work("Error opening file, could not find data of correct format", sels = True)
                     return
                 self.C.new_sheet = self.C.json_to_sheet(j,format_=json_format[0],key=json_format[1],get_format=False,return_rowlen=False)
                 if not self.C.new_sheet:
-                    self.stop_work("Error: File contained no data")
+                    self.stop_work("Error: File contained no data", sels = True)
                     self.select_sheet_button.config(state="disabled")
                     return
                 rl = len(max(self.C.new_sheet, key = len))
@@ -3928,7 +3931,7 @@ class merge_sheets_popup(tk.Toplevel):
                 self.wb_ = load_workbook(in_mem,read_only=True,data_only=True)
                 wbsheets = self.wb_.sheetnames
                 if not wbsheets:
-                    self.stop_work("Error: File/sheet contained no data")
+                    self.stop_work("Error: File/sheet contained no data", sels = True)
                     return
                 sheetnames = set(self.wb_.sheetnames)
                 if "Treesurgeon Data" in sheetnames:
@@ -3960,11 +3963,11 @@ class merge_sheets_popup(tk.Toplevel):
         except Exception as error_msg:
             self.try_to_close_wb()
             self.C.new_sheet = []
-            self.stop_work("Error: " + str(error_msg))
+            self.stop_work("Error: " + str(error_msg), sels = True)
             return
         if not self.C.new_sheet and not filepath.lower().endswith((".xlsx",".xls",".xlsm")):
             self.C.new_sheet = []
-            self.stop_work("Error: File/sheet contained no data")
+            self.stop_work("Error: File/sheet contained no data", sels = True)
             return
         self.sheetdisplay.data_reference(newdataref=self.C.new_sheet,reset_col_positions=True,reset_row_positions=True,redraw=True)
         self.open_file_display.set_my_value(filepath)
@@ -3989,7 +3992,7 @@ class merge_sheets_popup(tk.Toplevel):
         self.try_to_close_wb()
         self.stop_work("Ready to merge sheets")
         if not self.C.new_sheet:
-            self.stop_work("Error: File/sheet contained no data")
+            self.stop_work("Error: File/sheet contained no data", sels = True)
             self.select_sheet_button.config(state="disabled")
             return
         rl = len(max(self.C.new_sheet, key = len))
@@ -4007,8 +4010,10 @@ class merge_sheets_popup(tk.Toplevel):
         self.status.change_text(msg)
         self.disable_widgets()
 
-    def stop_work(self,msg=""):
+    def stop_work(self,msg="", sels = False):
         self.status.change_text(msg)
+        if sels:
+            self.setup_selectors()
         self.enable_widgets()
 
     def enable_widgets(self):

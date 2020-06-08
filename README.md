@@ -31,9 +31,8 @@ ___
 
 | Program Type           | Download Link                                                                          |
 |:-----------------------| --------------------------------------------------------------------------------------:|
-| Portable Folder .exe   | [https://github.com/ragardner/Tree-Surgeon/releases/download/2.64256/Tree.Surgeon.zip](https://github.com/ragardner/Tree-Surgeon/releases/download/2.64256/Tree.Surgeon.zip)   |
-| Python Source          | [https://github.com/ragardner/Tree-Surgeon/archive/2.64256.zip](https://github.com/ragardner/Tree-Surgeon/archive/2.64256.zip)                          |
+| Portable Folder .exe   | [https://github.com/ragardner/Tree-Surgeon/releases/download/2.64257/Tree.Surgeon.zip](https://github.com/ragardner/Tree-Surgeon/releases/download/2.64257/Tree.Surgeon.zip)   |
+| Python Source          | [https://github.com/ragardner/Tree-Surgeon/archive/2.64257.zip](https://github.com/ragardner/Tree-Surgeon/archive/2.64257.zip)                          |
 
-If running as a Python script [these libraries](https://github.com/ragardner/Tree-Surgeon/blob/master/requirements.txt) are required
 
 Contact ragardner@protonmail.com for more information

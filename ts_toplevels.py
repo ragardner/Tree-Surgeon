@@ -469,7 +469,7 @@ class changelog_popup(tk.Toplevel):
                                                command=self.save_selected_as)
         self.export_selected_button.grid(row = 0, column = 1, padx = 25, pady = 20, sticky = "nswe")
         
-        self.prune_button = button(self.buttonframe,text="Prune from selected",
+        self.prune_button = button(self.buttonframe,text="Prune up to selected",
                                     style="EF.Std.TButton",
                                     command=self.prune)
         self.prune_button.grid(row = 0, column = 2, padx = 25, pady = 20, sticky = "nswe")
@@ -4570,19 +4570,19 @@ class askconfirm(tk.Toplevel):
         self.action_display.grid(row=0,column=1,sticky="nswe",pady=(20,5),padx=(0,20))
         self.action_display.config(height = 75)
         self.button_frame = frame(self, theme = theme)
-        self.button_frame.grid(row=1,column=0,columnspan=2,sticky="nswe",padx=20,pady=(10,20))
+        self.button_frame.grid(row=1,column=0,columnspan=2,sticky="nswe",padx=30,pady=(10,20))
         self.button_frame.grid_columnconfigure(0, weight = True, uniform = "x")
         self.button_frame.grid_columnconfigure(1, weight = True, uniform = "x")
         self.button_frame.grid_rowconfigure(0, weight = True)
         self.confirm_button = button(self.button_frame,text=confirm_text,style="EF.Std.TButton",command=self.confirm)
-        self.confirm_button.grid(row = 0, column = 0, sticky = "nswe", padx = (0, 20))
+        self.confirm_button.grid(row = 0, column = 0, sticky = "nswe", padx = (0, 25))
         self.cancel_button = button(self.button_frame, text=cancel_text,style="EF.Std.TButton",command=self.cancel)
-        self.cancel_button.grid(row = 0, column = 1, sticky = "nswe")
+        self.cancel_button.grid(row = 0, column = 1, sticky = "nswe", padx = (25, 0))
         self.bind("<Return>",self.confirm)
         self.bind("<Escape>",self.cancel)
         self.boolean = False
         self.action_display.place_cursor()
-        center(self, 530, 155)
+        center(self, 530, 158)
         self.deiconify()
         self.wait_window()
     def confirm(self,event=None):

@@ -2207,10 +2207,9 @@ class column_manager_popup(tk.Toplevel):
                                         "arrowkeys"))
         self.cols_view.extra_bindings([("row_index_drag_drop",self.snapshot_drag_cols_col_manager)])
 
-    def formatting_view_drag(self, selected_rows, r):
-        r = int(r)
-        rowsiter = list(selected_rows)
-        rowsiter.sort()
+    def formatting_view_drag(self, event):
+        r = event[3]
+        rowsiter = sorted(event[1])
         stins = rowsiter[0]
         endins = rowsiter[-1] + 1
         totalrows = len(rowsiter)
@@ -2226,9 +2225,11 @@ class column_manager_popup(tk.Toplevel):
                                                           self.C.headers[self.col_sel].formatting[r + 1:])
         self.populate_formatting_view(col = self.col_sel)
 
-    def snapshot_drag_cols_col_manager(self, selected_cols, c):
-        self.C.snapshot_drag_cols_col_manager(selected_cols, c)
+    def snapshot_drag_cols_col_manager(self, event):
+        self.C.snapshot_drag_cols_col_manager(event)
         self.repopulate()
+        self.cols_view.set_currently_selected(event[2][0], 0)
+        self.cols_view.create_selection_box(event[2][0], 0, event[2][-1] + 1, 5, "rows")
 
     def undo(self, event = None):
         if self.C.vs:
@@ -2432,7 +2433,7 @@ class column_manager_popup(tk.Toplevel):
         self.actions.add("formula")
 
     def del_validation(self,event=None):
-        if [] != self.C.headers[self.col_sel].validation:
+        if self.C.headers[self.col_sel].validation:
             self.C.snapshot_edit_validation(self.col_sel, [])
         self.C.headers[self.col_sel].validation = []
         self.repopulate()
@@ -3712,10 +3713,9 @@ class merge_sheets_popup(tk.Toplevel):
             self.showing_left = True
             self.toggle_left_button.config(text = "⯇")
 
-    def drag_col(self, selected_cols, c):
-        c = int(c)
-        colsiter = list(selected_cols)
-        colsiter.sort()
+    def drag_col(self, event):
+        c = event[3]
+        colsiter = sorted(event[1])
         stins = colsiter[0]
         endins = colsiter[-1] + 1
         totalcols = len(colsiter)
@@ -3732,14 +3732,14 @@ class merge_sheets_popup(tk.Toplevel):
                                               self.C.new_sheet[rn][stins:stins + totalcols] +
                                               self.C.new_sheet[rn][c + 1:])
         self.sheetdisplay.MT.data_ref = self.C.new_sheet
+        self.sheetdisplay.refresh()
         self.selector.set_columns([h for h in self.C.new_sheet[0]])
         self.selector.detect_id_col()
         self.selector.detect_par_cols()
 
-    def drag_row(self, selected_rows, r):
-        r = int(r)
-        rowsiter = list(selected_rows)
-        rowsiter.sort()
+    def drag_row(self, event):
+        r = event[3]
+        rowsiter = sorted(event[1])
         stins = rowsiter[0]
         endins = rowsiter[-1] + 1
         totalrows = len(rowsiter)
@@ -3754,6 +3754,7 @@ class merge_sheets_popup(tk.Toplevel):
                                       self.C.new_sheet[stins:stins + totalrows] +
                                       self.C.new_sheet[r + 1:])
         self.sheetdisplay.MT.data_ref = self.C.new_sheet
+        self.sheetdisplay.refresh()
         if endins == 0 or r == 0 or stins == 0:
             self.selector.set_columns([h for h in self.C.new_sheet[0]])
             self.selector.detect_id_col()
@@ -3840,10 +3841,16 @@ class merge_sheets_popup(tk.Toplevel):
         idcol = self.selector.get_id_col()
         parcols = self.selector.get_par_cols()
         self.selector.set_columns([h for h in self.C.new_sheet[0]] if self.C.new_sheet else [])
-        if idcol is not None and self.C.new_sheet:
-            self.selector.set_id_col(idcol)
-        if parcols and self.C.new_sheet:
-            self.selector.set_par_cols(parcols)
+        try:
+            if idcol is not None and self.C.new_sheet:
+                self.selector.set_id_col(idcol)
+        except:
+            pass
+        try:
+            if parcols and self.C.new_sheet:
+                self.selector.set_par_cols(parcols)
+        except:
+            pass
 
     def return_wb_file(self,filepath):
         with open(filepath,"rb") as fh:
@@ -4193,17 +4200,25 @@ class get_clipboard_data_popup(tk.Toplevel):
         ancparcols = self.flattened_selector.get_par_cols()
         self.selector.set_columns([h for h in self.C.new_sheet[0]] if self.C.new_sheet else [])
         self.flattened_selector.set_columns([h for h in self.C.new_sheet[0]] if self.C.new_sheet else [])
-        if idcol is not None and self.C.new_sheet:
-            self.selector.set_id_col(idcol)
-        if parcols and self.C.new_sheet:
-            self.selector.set_par_cols(parcols)
-        if ancparcols and self.C.new_sheet:
-            self.flattened_selector.set_par_cols(ancparcols)
+        try:
+            if idcol is not None and self.C.new_sheet:
+                self.selector.set_id_col(idcol)
+        except:
+            pass
+        try:
+            if parcols and self.C.new_sheet:
+                self.selector.set_par_cols(parcols)
+        except:
+            pass
+        try:
+            if ancparcols and self.C.new_sheet:
+                self.flattened_selector.set_par_cols(ancparcols)
+        except:
+            pass
 
-    def drag_col(self, selected_cols, c):
-        c = int(c)
-        colsiter = list(selected_cols)
-        colsiter.sort()
+    def drag_col(self, event):
+        c = event[3]
+        colsiter = sorted(event[1])
         stins = colsiter[0]
         endins = colsiter[-1] + 1
         totalcols = len(colsiter)
@@ -4220,15 +4235,15 @@ class get_clipboard_data_popup(tk.Toplevel):
                                               self.C.new_sheet[rn][stins:stins + totalcols] +
                                               self.C.new_sheet[rn][c + 1:])
         self.sheetdisplay.MT.data_ref = self.C.new_sheet
+        self.sheetdisplay.refresh()
         self.selector.set_columns([h for h in self.C.new_sheet[0]])
         self.flattened_selector.set_columns([h for h in self.C.new_sheet[0]])
         self.selector.detect_id_col()
         self.selector.detect_par_cols()
 
-    def drag_row(self, selected_rows, r):
-        r = int(r)
-        rowsiter = list(selected_rows)
-        rowsiter.sort()
+    def drag_row(self, event):
+        r = event[3]
+        rowsiter = sorted(event[1])
         stins = rowsiter[0]
         endins = rowsiter[-1] + 1
         totalrows = len(rowsiter)
@@ -4243,6 +4258,7 @@ class get_clipboard_data_popup(tk.Toplevel):
                                       self.C.new_sheet[stins:stins + totalrows] +
                                       self.C.new_sheet[r + 1:])
         self.sheetdisplay.MT.data_ref = self.C.new_sheet
+        self.sheetdisplay.refresh()
         if endins == 0 or r == 0 or stins == 0:
             self.selector.set_columns([h for h in self.C.new_sheet[0]])
             self.flattened_selector.set_columns([h for h in self.C.new_sheet[0]])

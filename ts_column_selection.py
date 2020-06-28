@@ -52,20 +52,18 @@ class columnselection(tk.Frame):
         self.sheetdisplay = Sheet(self,
                                   theme = self.C.theme,
                                   header_font = ("Calibri", 13, "normal"),
-                                  row_drag_and_drop_perform = False,
-                                  column_drag_and_drop_perform = False,
                                   outline_thickness=1)
         self.sheetdisplay.enable_bindings("enable_all")
         self.sheetdisplay.extra_bindings([("row_index_drag_drop", self.drag_row),
                                           ("column_header_drag_drop", self.drag_col),
-                                          ("ctrl_x", self.ctrl_x_in_sheet),
-                                          ("delete_key", self.del_in_sheet),
-                                          ("rc_delete_column", self.del_in_sheet),
-                                          ("rc_delete_row", self.del_in_sheet),
+                                          ("ctrl_x", self.reset_selectors),
+                                          ("delete_key", self.reset_selectors),
+                                          ("rc_delete_column", self.reset_selectors),
+                                          ("rc_delete_row", self.reset_selectors),
                                           ("rc_insert_column", self.reset_selectors),
                                           ("rc_insert_row", self.reset_selectors),
-                                          ("ctrl_v", self.ctrl_v_in_sheet),
-                                          ("ctrl_z", self.ctrl_z_in_sheet),
+                                          ("ctrl_v", self.reset_selectors),
+                                          ("ctrl_z", self.reset_selectors),
                                           ("edit_cell", self.edit_cell_in_sheet)
                                           ])
         self.sheetdisplay.grid(row=0,column=1,rowspan=3,sticky="nswe")
@@ -90,79 +88,47 @@ class columnselection(tk.Frame):
             self.selector.grid(row=0,column=0,sticky="nswe")
             self.flattened_selector.grid_forget()
 
-    def drag_col(self, selected_cols, c):
-        c = int(c)
-        colsiter = list(selected_cols)
-        colsiter.sort()
+    def drag_col(self, event):
+        colsiter = sorted(event[1])
+        c = event[3]
         stins = colsiter[0]
         endins = colsiter[-1] + 1
-        totalcols = len(colsiter)
-        if stins > c:
-            for rn in range(len(self.C.treeframe.sheet)):
-                self.C.treeframe.sheet[rn] = (self.C.treeframe.sheet[rn][:c] +
-                                              self.C.treeframe.sheet[rn][stins:stins + totalcols] +
-                                              self.C.treeframe.sheet[rn][c:stins] +
-                                              self.C.treeframe.sheet[rn][stins + totalcols:])
-        else:
-            for rn in range(len(self.C.treeframe.sheet)):
-                self.C.treeframe.sheet[rn] = (self.C.treeframe.sheet[rn][:stins] +
-                                              self.C.treeframe.sheet[rn][stins + totalcols:c + 1] +
-                                              self.C.treeframe.sheet[rn][stins:stins + totalcols] +
-                                              self.C.treeframe.sheet[rn][c + 1:])
-        self.sheetdisplay.MT.data_ref = self.C.treeframe.sheet
-        self.selector.set_columns([h for h in self.C.treeframe.sheet[0]])
-        self.flattened_selector.set_columns([h for h in self.C.treeframe.sheet[0]])
+        self.selector.set_columns([h for h in self.sheetdisplay.get_sheet_data()[0]])
+        self.flattened_selector.set_columns([h for h in self.sheetdisplay.get_sheet_data()[0]])
         self.selector.detect_id_col()
         self.selector.detect_par_cols()
 
-    def drag_row(self, selected_rows, r):
-        r = int(r)
-        rowsiter = list(selected_rows)
-        rowsiter.sort()
+    def drag_row(self, event):
+        rowsiter = sorted(event[1])
+        r = event[3]
         stins = rowsiter[0]
         endins = rowsiter[-1] + 1
-        totalrows = len(rowsiter)
-        if stins > r:
-            self.C.treeframe.sheet = (self.C.treeframe.sheet[:r] +
-                                      self.C.treeframe.sheet[stins:stins + totalrows] +
-                                      self.C.treeframe.sheet[r:stins] +
-                                      self.C.treeframe.sheet[stins + totalrows:])
-        else:
-            self.C.treeframe.sheet = (self.C.treeframe.sheet[:stins] +
-                                      self.C.treeframe.sheet[stins + totalrows:r + 1] +
-                                      self.C.treeframe.sheet[stins:stins + totalrows] +
-                                      self.C.treeframe.sheet[r + 1:])
-        self.sheetdisplay.MT.data_ref = self.C.treeframe.sheet
-        if endins == 0 or r == 0 or stins == 0:
-            self.selector.set_columns([h for h in self.C.treeframe.sheet[0]])
-            self.flattened_selector.set_columns([h for h in self.C.treeframe.sheet[0]])
-            self.selector.detect_id_col()
-            self.selector.detect_par_cols()
+        self.selector.set_columns([h for h in self.sheetdisplay.get_sheet_data()[0]])
+        self.flattened_selector.set_columns([h for h in self.sheetdisplay.get_sheet_data()[0]])
+        self.selector.detect_id_col()
+        self.selector.detect_par_cols()
 
     def reset_selectors(self, event = None):
         idcol = self.selector.get_id_col()
         parcols = self.selector.get_par_cols()
         ancparcols = self.flattened_selector.get_par_cols()
-        self.selector.set_columns([h for h in self.C.treeframe.sheet[0]] if self.C.treeframe.sheet else [])
-        self.flattened_selector.set_columns([h for h in self.C.treeframe.sheet[0]] if self.C.treeframe.sheet else [])
-        if idcol is not None and self.C.treeframe.sheet:
-            self.selector.set_id_col(idcol)
-        if parcols and self.C.treeframe.sheet:
-            self.selector.set_par_cols(parcols)
-        if ancparcols and self.C.treeframe.sheet:
-            self.flattened_selector.set_par_cols(ancparcols)
-
-    def del_in_sheet(self, event = None):
-        self.reset_selectors()
-
-    def ctrl_x_in_sheet(self, event = None):
-        self.reset_selectors()
-
-    def ctrl_v_in_sheet(self, event = None):
-        self.reset_selectors()
-
-    def ctrl_z_in_sheet(self, event = None):
-        self.reset_selectors()
+        self.selector.set_columns([h for h in self.sheetdisplay.get_sheet_data()[0]] if self.sheetdisplay.get_sheet_data() else [])
+        self.flattened_selector.set_columns([h for h in self.sheetdisplay.get_sheet_data()[0]] if self.sheetdisplay.get_sheet_data() else [])
+        try:
+            if idcol is not None and self.sheetdisplay.get_sheet_data():
+                self.selector.set_id_col(idcol)
+        except:
+            pass
+        try:
+            if parcols and self.sheetdisplay.get_sheet_data():
+                self.selector.set_par_cols(parcols)
+        except:
+            pass
+        try:
+            if ancparcols and self.sheetdisplay.get_sheet_data():
+                self.flattened_selector.set_par_cols(ancparcols)
+        except:
+            pass
 
     def edit_cell_in_sheet(self, event = None):
         idcol = self.selector.get_id_col()
@@ -232,7 +198,7 @@ class columnselection(tk.Frame):
                 return
         self.C.status_bar.change_text("Loading...   ")
         self.C.disable_at_start()
-        self.C.treeframe.sheet = self.sheetdisplay.set_sheet_data(data = self.C.treeframe.sheet)
+        self.C.treeframe.sheet = self.sheetdisplay.get_sheet_data()
         if baseids:
             if order == "Order: Base → Top":
                 idcol = hiers.pop(0)

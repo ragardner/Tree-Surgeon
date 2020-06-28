@@ -74,44 +74,44 @@ class Sheet(tk.Frame):
                  display_selected_fg_over_highlights = False,
                  show_selected_cells_border = True,
                  theme = "light blue",
-                 popup_menu_fg                           = "gray2",
-                 popup_menu_bg                           = "#f2f2f2",
-                 popup_menu_highlight_bg                 = "#91c9f7",
-                 popup_menu_highlight_fg                 = "black",
-                 frame_bg                                = theme_light_blue['table_bg'],
-                 table_grid_fg                           = theme_light_blue['table_grid_fg'],
-                 table_bg                                = theme_light_blue['table_bg'],
-                 table_fg                                = theme_light_blue['table_fg'], 
-                 table_selected_cells_border_fg          = theme_light_blue['table_selected_cells_border_fg'],
-                 table_selected_cells_bg                 = theme_light_blue['table_selected_cells_bg'],
-                 table_selected_cells_fg                 = theme_light_blue['table_selected_cells_fg'],
-                 table_selected_rows_border_fg           = theme_light_blue['table_selected_rows_border_fg'],
-                 table_selected_rows_bg                  = theme_light_blue['table_selected_rows_bg'],
-                 table_selected_rows_fg                  = theme_light_blue['table_selected_rows_fg'],
-                 table_selected_columns_border_fg        = theme_light_blue['table_selected_columns_border_fg'],
-                 table_selected_columns_bg               = theme_light_blue['table_selected_columns_bg'],
-                 table_selected_columns_fg               = theme_light_blue['table_selected_columns_fg'],
-                 resizing_line_fg                        = theme_light_blue['resizing_line_fg'],
-                 drag_and_drop_bg                        = theme_light_blue['drag_and_drop_bg'],
-                 index_bg                                = theme_light_blue['index_bg'],
-                 index_border_fg                         = theme_light_blue['index_border_fg'],
-                 index_grid_fg                           = theme_light_blue['index_grid_fg'],
-                 index_fg                                = theme_light_blue['index_fg'],
-                 index_selected_cells_bg                 = theme_light_blue['index_selected_cells_bg'],
-                 index_selected_cells_fg                 = theme_light_blue['index_selected_cells_fg'],
-                 index_selected_rows_bg                  = theme_light_blue['index_selected_rows_bg'],
-                 index_selected_rows_fg                  = theme_light_blue['index_selected_rows_fg'],
-                 header_bg                               = theme_light_blue['header_bg'],
-                 header_border_fg                        = theme_light_blue['header_border_fg'],
-                 header_grid_fg                          = theme_light_blue['header_grid_fg'],
-                 header_fg                               = theme_light_blue['header_fg'],
-                 header_selected_cells_bg                = theme_light_blue['header_selected_cells_bg'],
-                 header_selected_cells_fg                = theme_light_blue['header_selected_cells_fg'],
-                 header_selected_columns_bg              = theme_light_blue['header_selected_columns_bg'],
-                 header_selected_columns_fg              = theme_light_blue['header_selected_columns_fg'],
-                 top_left_bg                             = theme_light_blue['top_left_bg'],
-                 top_left_fg                             = theme_light_blue['top_left_fg'],
-                 top_left_fg_highlight                   = theme_light_blue['top_left_fg_highlight']):
+                 popup_menu_fg                      = "gray2",
+                 popup_menu_bg                      = "#f2f2f2",
+                 popup_menu_highlight_bg            = "#91c9f7",
+                 popup_menu_highlight_fg            = "black",
+                 frame_bg                           = theme_light_blue['table_bg'],
+                 table_grid_fg                      = theme_light_blue['table_grid_fg'],
+                 table_bg                           = theme_light_blue['table_bg'],
+                 table_fg                           = theme_light_blue['table_fg'], 
+                 table_selected_cells_border_fg     = theme_light_blue['table_selected_cells_border_fg'],
+                 table_selected_cells_bg            = theme_light_blue['table_selected_cells_bg'],
+                 table_selected_cells_fg            = theme_light_blue['table_selected_cells_fg'],
+                 table_selected_rows_border_fg      = theme_light_blue['table_selected_rows_border_fg'],
+                 table_selected_rows_bg             = theme_light_blue['table_selected_rows_bg'],
+                 table_selected_rows_fg             = theme_light_blue['table_selected_rows_fg'],
+                 table_selected_columns_border_fg   = theme_light_blue['table_selected_columns_border_fg'],
+                 table_selected_columns_bg          = theme_light_blue['table_selected_columns_bg'],
+                 table_selected_columns_fg          = theme_light_blue['table_selected_columns_fg'],
+                 resizing_line_fg                   = theme_light_blue['resizing_line_fg'],
+                 drag_and_drop_bg                   = theme_light_blue['drag_and_drop_bg'],
+                 index_bg                           = theme_light_blue['index_bg'],
+                 index_border_fg                    = theme_light_blue['index_border_fg'],
+                 index_grid_fg                      = theme_light_blue['index_grid_fg'],
+                 index_fg                           = theme_light_blue['index_fg'],
+                 index_selected_cells_bg            = theme_light_blue['index_selected_cells_bg'],
+                 index_selected_cells_fg            = theme_light_blue['index_selected_cells_fg'],
+                 index_selected_rows_bg             = theme_light_blue['index_selected_rows_bg'],
+                 index_selected_rows_fg             = theme_light_blue['index_selected_rows_fg'],
+                 header_bg                          = theme_light_blue['header_bg'],
+                 header_border_fg                   = theme_light_blue['header_border_fg'],
+                 header_grid_fg                     = theme_light_blue['header_grid_fg'],
+                 header_fg                          = theme_light_blue['header_fg'],
+                 header_selected_cells_bg           = theme_light_blue['header_selected_cells_bg'],
+                 header_selected_cells_fg           = theme_light_blue['header_selected_cells_fg'],
+                 header_selected_columns_bg         = theme_light_blue['header_selected_columns_bg'],
+                 header_selected_columns_fg         = theme_light_blue['header_selected_columns_fg'],
+                 top_left_bg                        = theme_light_blue['top_left_bg'],
+                 top_left_fg                        = theme_light_blue['top_left_fg'],
+                 top_left_fg_highlight              = theme_light_blue['top_left_fg_highlight']):
         tk.Frame.__init__(self,
                           parent,
                           background = frame_bg,
@@ -332,100 +332,150 @@ class Sheet(tk.Frame):
             self.TL.focus_set()
 
     def extra_bindings(self, bindings, func = "None"):
-        if bindings == "unbind_all":
-            self.MT.extra_ctrl_c_func = None
-            self.MT.extra_ctrl_x_func = None
-            self.MT.extra_ctrl_v_func = None
-            self.MT.extra_ctrl_z_func = None
-            self.MT.extra_delete_key_func = None
-            self.MT.extra_edit_cell_func = None
-            self.MT.extra_begin_edit_cell_func = None
-            self.MT.extra_begin_edit_cell_keypress_func = None
-            self.MT.extra_escape_edit_cell_func = None
-            self.RI.ri_extra_drag_drop_func = None
-            self.CH.ch_extra_drag_drop_func = None
-            self.MT.selection_binding_func = None
-            self.MT.select_all_binding_func = None
-            self.RI.selection_binding_func = None
-            self.CH.selection_binding_func = None
-            self.MT.drag_selection_binding_func = None
-            self.RI.drag_selection_binding_func = None
-            self.CH.drag_selection_binding_func = None
-            self.MT.shift_selection_binding_func = None
-            self.RI.shift_selection_binding_func = None
-            self.CH.shift_selection_binding_func = None
+        if isinstance(bindings, str) and bindings.lower() in ("bind_all", "unbind_all"):
+            self.MT.extra_begin_ctrl_c_func = None if func == "None" else func
+            self.MT.extra_begin_ctrl_x_func = None if func == "None" else func
+            self.MT.extra_begin_ctrl_v_func = None if func == "None" else func
+            self.MT.extra_begin_ctrl_z_func = None if func == "None" else func
+            self.MT.extra_begin_delete_key_func = None if func == "None" else func
+            self.MT.extra_begin_edit_cell_func = None if func == "None" else func
+            self.MT.extra_begin_edit_cell_func = None if func == "None" else func
+            self.RI.ri_extra_begin_drag_drop_func = None if func == "None" else func
+            self.CH.ch_extra_begin_drag_drop_func = None if func == "None" else func
+            self.MT.extra_begin_del_rows_rc_func = None if func == "None" else func
+            self.MT.extra_begin_del_cols_rc_func = None if func == "None" else func
+            self.MT.extra_begin_insert_cols_rc_func = None if func == "None" else func
+            self.MT.extra_begin_insert_rows_rc_func = None if func == "None" else func
+            
+            self.MT.extra_end_ctrl_c_func = None if func == "None" else func
+            self.MT.extra_end_ctrl_x_func = None if func == "None" else func
+            self.MT.extra_end_ctrl_v_func = None if func == "None" else func
+            self.MT.extra_end_ctrl_z_func = None if func == "None" else func
+            self.MT.extra_end_delete_key_func = None if func == "None" else func
+            self.MT.extra_begin_edit_cell_func = None if func == "None" else func
+            self.MT.extra_end_edit_cell_func = None if func == "None" else func
+            self.RI.ri_extra_end_drag_drop_func = None if func == "None" else func
+            self.CH.ch_extra_end_drag_drop_func = None if func == "None" else func
+            self.MT.extra_end_del_rows_rc_func = None if func == "None" else func
+            self.MT.extra_end_del_cols_rc_func = None if func == "None" else func
+            self.MT.extra_end_insert_cols_rc_func = None if func == "None" else func
+            self.MT.extra_end_insert_rows_rc_func = None if func == "None" else func
+            
+            self.MT.selection_binding_func = None if func == "None" else func
+            self.MT.select_all_binding_func = None if func == "None" else func
+            self.RI.selection_binding_func = None if func == "None" else func
+            self.CH.selection_binding_func = None if func == "None" else func
+            self.MT.drag_selection_binding_func = None if func == "None" else func
+            self.RI.drag_selection_binding_func = None if func == "None" else func
+            self.CH.drag_selection_binding_func = None if func == "None" else func
+            self.MT.shift_selection_binding_func = None if func == "None" else func
+            self.RI.shift_selection_binding_func = None if func == "None" else func
+            self.CH.shift_selection_binding_func = None if func == "None" else func
             self.MT.deselection_binding_func = None
-            self.MT.extra_del_rows_rc_func = None
-            self.MT.extra_del_cols_rc_func = None
-            self.MT.extra_insert_cols_rc_func = None
-            self.MT.extra_insert_rows_rc_func = None
-        elif isinstance(bindings[0], str) and func == "None":
-            iterable = [bindings]
-        elif isinstance(bindings, str) and func != "None":
-            iterable = [(bindings, func)]
         else:
-            iterable = bindings
-        for binding, func in iterable:
-            if binding == "ctrl_c":
-                self.MT.extra_ctrl_c_func = func
-            if binding == "ctrl_x":
-                self.MT.extra_ctrl_x_func = func
-            if binding == "ctrl_v":
-                self.MT.extra_ctrl_v_func = func
-            if binding == "ctrl_z":
-                self.MT.extra_ctrl_z_func = func
-            if binding == "delete_key":
-                self.MT.extra_delete_key_func = func
-            if binding == "begin_edit_cell":
-                self.MT.extra_begin_edit_cell_func = func
-            if binding == "end_edit_cell" or binding == "edit_cell":
-                self.MT.extra_end_edit_cell_func = func
-            if binding == "row_index_drag_drop":
-                self.RI.ri_extra_drag_drop_func = func
-            if binding == "column_header_drag_drop":
-                self.CH.ch_extra_drag_drop_func = func
-            if binding == "cell_select":
-                self.MT.selection_binding_func = func
-            if binding in ("select_all", "ctrl_a"):
-                self.MT.select_all_binding_func = func
-            if binding == "row_select":
-                self.RI.selection_binding_func = func
-            if binding in ("col_select", "column_select"):
-                self.CH.selection_binding_func = func
-            if binding == "drag_select_cells":
-                self.MT.drag_selection_binding_func = func
-            if binding == "drag_select_rows":
-                self.RI.drag_selection_binding_func = func
-            if binding == "drag_select_columns":
-                self.CH.drag_selection_binding_func = func
-            if binding == "shift_cell_select":
-                self.MT.shift_selection_binding_func = func
-            if binding == "shift_row_select":
-                self.RI.shift_selection_binding_func = func
-            if binding == "shift_column_select":
-                self.CH.shift_selection_binding_func = func
-            if binding == "deselect":
-                self.MT.deselection_binding_func = func
-            if binding == "rc_delete_row":
-                self.MT.extra_del_rows_rc_func = func
-            if binding == "rc_delete_column":
-                self.MT.extra_del_cols_rc_func = func
-            if binding == "rc_insert_column":
-                self.MT.extra_insert_cols_rc_func = func
-            if binding == "rc_insert_row":
-                self.MT.extra_insert_rows_rc_func = func
-            if binding == "all_select_events":
-                self.MT.selection_binding_func = func
-                self.MT.select_all_binding_func = func
-                self.RI.selection_binding_func = func
-                self.CH.selection_binding_func = func
-                self.MT.drag_selection_binding_func = func
-                self.RI.drag_selection_binding_func = func
-                self.CH.drag_selection_binding_func = func
-                self.MT.shift_selection_binding_func = func
-                self.RI.shift_selection_binding_func = func
-                self.CH.shift_selection_binding_func = func
-                self.MT.deselection_binding_func = func
+            if isinstance(bindings[0], str) and func == "None":
+                iterable = [bindings]
+            elif isinstance(bindings, str) and func != "None":
+                iterable = [(bindings, func)]
+            else:
+                iterable = bindings
+            for binding, func in iterable:
+                binding == binding.lower()
+                if binding in ("begin_copy", "begin_ctrl_c"):
+                    self.MT.extra_begin_ctrl_c_func = func
+                if binding in ("ctrl_c", "end_copy", "end_ctrl_c"):
+                    self.MT.extra_end_ctrl_c_func = func
+
+                if binding in ("begin_cut", "begin_ctrl_x"):
+                    self.MT.extra_begin_ctrl_x_func = func
+                if binding in ("ctrl_x", "end_cut", "end_ctrl_x"):
+                    self.MT.extra_end_ctrl_x_func = func
+
+                if binding in ("begin_paste", "begin_ctrl_v"):
+                    self.MT.extra_begin_ctrl_v_func = func
+                if binding in ("ctrl_v", "end_paste", "end_ctrl_v"):
+                    self.MT.extra_end_ctrl_v_func = func
+
+                if binding in ("begin_undo", "begin_ctrl_z"):
+                    self.MT.extra_begin_ctrl_z_func = func
+                if binding in ("ctrl_z", "end_undo", "end_ctrl_z"):
+                    self.MT.extra_end_ctrl_z_func = func
+
+                if binding in ("begin_delete_key", "begin_delete"):
+                    self.MT.extra_begin_delete_key_func = func
+                if binding in ("delete_key", "end_delete", "end_delete_key"):
+                    self.MT.extra_end_delete_key_func = func
+                    
+                if binding == "begin_edit_cell":
+                    self.MT.extra_begin_edit_cell_func = func
+                if binding == "end_edit_cell" or binding == "edit_cell":
+                    self.MT.extra_end_edit_cell_func = func
+
+                if binding == "begin_row_index_drag_drop":
+                    self.RI.ri_extra_begin_drag_drop_func = func
+                if binding in ("row_index_drag_drop", "end_row_index_drag_drop"):
+                    self.RI.ri_extra_end_drag_drop_func = func
+
+                if binding == "begin_column_header_drag_drop":
+                    self.CH.ch_extra_begin_drag_drop_func = func
+                if binding in ("column_header_drag_drop", "end_column_header_drag_drop"):
+                    self.CH.ch_extra_end_drag_drop_func = func
+
+                if binding in ("begin_rc_delete_row", "begin_delete_rows"):
+                    self.MT.extra_begin_del_rows_rc_func = func
+                if binding in ("rc_delete_row", "end_rc_delete_row", "end_delete_rows"):
+                    self.MT.extra_end_del_rows_rc_func = func
+
+                if binding in ("begin_rc_delete_column", "begin_delete_columns"):
+                    self.MT.extra_begin_del_cols_rc_func = func
+                if binding in ("rc_delete_column", "end_rc_delete_column", "end_delete_columns"):
+                    self.MT.extra_end_del_cols_rc_func = func
+                    
+                if binding in ("begin_rc_insert_column", "begin_insert_column", "begin_insert_columns"):
+                    self.MT.extra_begin_insert_cols_rc_func = func
+                if binding in ("rc_insert_column", "end_rc_insert_column", "end_insert_column", "end_insert_columns"):
+                    self.MT.extra_end_insert_cols_rc_func = func
+
+                if binding in ("begin_rc_insert_row", "begin_insert_row", "begin_insert_rows"):
+                    self.MT.extra_begin_insert_rows_rc_func = func
+                if binding in ("rc_insert_row", "end_rc_insert_row", "end_insert_row", "end_insert_rows"):
+                    self.MT.extra_end_insert_rows_rc_func = func
+                    
+                if binding == "cell_select":
+                    self.MT.selection_binding_func = func
+                if binding in ("select_all", "ctrl_a"):
+                    self.MT.select_all_binding_func = func
+                if binding == "row_select":
+                    self.RI.selection_binding_func = func
+                if binding in ("col_select", "column_select"):
+                    self.CH.selection_binding_func = func
+                if binding == "drag_select_cells":
+                    self.MT.drag_selection_binding_func = func
+                if binding == "drag_select_rows":
+                    self.RI.drag_selection_binding_func = func
+                if binding == "drag_select_columns":
+                    self.CH.drag_selection_binding_func = func
+                if binding == "shift_cell_select":
+                    self.MT.shift_selection_binding_func = func
+                if binding == "shift_row_select":
+                    self.RI.shift_selection_binding_func = func
+                if binding == "shift_column_select":
+                    self.CH.shift_selection_binding_func = func
+                if binding == "deselect":
+                    self.MT.deselection_binding_func = func
+                    
+                if binding == "all_select_events":
+                    self.MT.selection_binding_func = func
+                    self.MT.select_all_binding_func = func
+                    self.RI.selection_binding_func = func
+                    self.CH.selection_binding_func = func
+                    self.MT.drag_selection_binding_func = func
+                    self.RI.drag_selection_binding_func = func
+                    self.CH.drag_selection_binding_func = func
+                    self.MT.shift_selection_binding_func = func
+                    self.RI.shift_selection_binding_func = func
+                    self.CH.shift_selection_binding_func = func
+                    self.MT.deselection_binding_func = func
 
     def bind(self, binding, func):
         if binding == "<ButtonPress-1>":
@@ -1603,6 +1653,46 @@ class Sheet(tk.Frame):
                         break
                     self.MT.data_ref[rn].insert(idx, v)
 
+    def insert_columns(self, columns = None, idx = "end", widths = None, deselect_all = False, preserve_other_selections = False, add_rows = True, equalize_data_row_lengths = True):
+        self.MT.insert_col_positions(idx = idx,
+                                     widths = widths,
+                                     deselect_all = deselect_all,
+                                     preserve_other_selections = preserve_other_selections)
+        if equalize_data_row_lengths:
+            old_total = self.MT.equalize_data_row_lengths()
+        else:
+            old_total = self.MT.total_data_cols()
+        maxidx = len(self.MT.data_ref) - 1
+        if add_rows:
+            height = self.MT.default_rh[1]
+            if idx == "end":
+                for values in columns:
+                    for rn, v in enumerate(values):
+                        if rn > maxidx:
+                            self.MT.data_ref.append(list(repeat("", old_total)))
+                            self.MT.insert_row_position("end", height = height)
+                            maxidx += 1
+                        self.MT.data_ref[rn].append(v)
+            else:
+                for values in columns:
+                    for rn, v in enumerate(values):
+                        if rn > maxidx:
+                            self.MT.data_ref.append(list(repeat("", old_total)))
+                            self.MT.insert_row_position("end", height = height)
+                            maxidx += 1
+                        self.MT.data_ref[rn].insert(idx, v)
+        else:
+            if idx == "end":
+                for rn, v in enumerate(values):
+                    if rn > maxidx:
+                        break
+                    self.MT.data_ref[rn].append(v)
+            else:
+                for rn, v in enumerate(values):
+                    if rn > maxidx:
+                        break
+                    self.MT.data_ref[rn].insert(idx, v)
+
     def set_row_data(self, r, values = tuple(), add_columns = True):
         if len(self.MT.data_ref) - 1 < r:
             raise Exception("Row number is out of range")
@@ -1646,12 +1736,42 @@ class Sheet(tk.Frame):
                 if not self.MT.col_positions:
                     self.MT.col_positions = [0]
                 if len(data) > len(self.MT.col_positions) - 1:
-                    for c in range(len(data) - (len(self.MT.col_positions) - 1)):
-                        self.MT.insert_col_position("end")
+                    self.insert_column_positions("end", len(data) - (len(self.MT.col_positions) - 1))
         if isinstance(idx, str) and idx.lower() == "end":
             self.MT.data_ref.append(data)
         else:
             self.MT.data_ref.insert(idx, data)
+
+    def insert_rows(self, rows = 1, idx = "end", heights = None, deselect_all = False, preserve_other_selections = False, add_columns = True):
+        self.MT.insert_row_positions(idx = idx,
+                                     heights = heights,
+                                     deselect_all = deselect_all,
+                                     preserve_other_selections = preserve_other_selections)
+        total_cols = None
+        if isinstance(rows, int):
+            total_cols = self.MT.total_data_cols()
+            data = list(repeat("", total_cols))
+        elif isinstance(rows, list):
+            data = rows
+        else:
+            data = list(rows)
+        if add_columns:
+            if total_cols is None:
+                total_cols = self.MT.total_data_cols()
+            data_max_cols = len(max(data, key = len))
+            if data_max_cols > total_cols:
+                self.MT.data_ref[:] = [r + list(repeat("", data_max_cols - total_cols)) for r in self.MT.data_ref]
+            else:
+                data[:] = [r + list(repeat("", total_cols - data_max_cols)) for r in data]
+            if self.MT.all_columns_displayed:
+                if not self.MT.col_positions:
+                    self.MT.col_positions = [0]
+                if data_max_cols > len(self.MT.col_positions) - 1:
+                    self.insert_column_positions("end", len(data) - (len(self.MT.col_positions) - 1))
+        if isinstance(idx, str) and idx.lower() == "end":
+            self.MT.data_ref.extend(data)
+        else:
+            self.MT.data_ref[idx:idx] = data
 
     def sheet_data_dimensions(self, total_rows = None, total_columns = None):
         self.MT.data_dimensions(total_rows, total_columns)

@@ -1419,7 +1419,7 @@ class wrapped_text_with_find_and_yscroll(tk.Frame):
             return
         self.save_text_button.change_text("Saving...")
         try:
-            with open(newfile,"w") as fh:
+            with open(newfile, "w") as fh:
                 fh.write(self.textbox.get("1.0","end")) #remove last newline? [:-2]
         except:
             errorpopup = error(self.C,"Error saving file", theme = self.theme)

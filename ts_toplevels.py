@@ -270,14 +270,14 @@ class export_flattened_popup(tk.Toplevel):
         self.start_work("Opened save dialog")
         newfile = filedialog.asksaveasfilename(parent=self,
                                                title="Save flattened sheet as",
-                                               filetypes=[('Excel file','.xlsx'),('JSON File','.json'),('CSV File','.csv')],
+                                               filetypes=[('Excel file','.xlsx'),('JSON File','.json'),('CSV File','.csv'),('TSV File','.tsv')],
                                                defaultextension=".xlsx",
                                                confirmoverwrite=True)
         if not newfile:
             self.stop_work()
             return
         newfile = os.path.normpath(newfile)
-        if not newfile.lower().endswith((".csv",".xlsx",".json")):
+        if not newfile.lower().endswith((".csv",".xlsx",".json",".tsv")):
             self.grab_set()
             self.stop_work("Can only save .json/.csv/.xlsx file types")
             return
@@ -303,9 +303,11 @@ class export_flattened_popup(tk.Toplevel):
             elif newfile.lower().endswith(".json"):
                 with open(newfile,"w",newline="") as fh:
                     fh.write(json.dumps(self.C.dump_full_sheet_to_json(self.sheetdisplay.get_sheet_data()[0],self.sheetdisplay.get_sheet_data()[1:],include_headers=True)))             
-            elif newfile.lower().endswith(".csv"):
-                with open(newfile,"w",newline="") as fh:
-                    writer = csv_module.writer(fh,dialect=csv_module.excel_tab,lineterminator="\n")
+            elif newfile.lower().endswith((".tsv", ".csv")):
+                with open(newfile,"w",newline="", encoding = "utf-8") as fh:
+                    writer = csv_module.writer(fh,
+                                               dialect = csv_module.excel_tab if newfile.lower().endswith(".tsv") else csv_module.excel,
+                                               lineterminator="\n")
                     for rn,row in enumerate(self.sheetdisplay.get_sheet_data()):
                         writer.writerow(row)
                         if not rn % 50:
@@ -566,14 +568,16 @@ class changelog_popup(tk.Toplevel):
         self.start_work("Opened save dialog")
         newfile = filedialog.asksaveasfilename(parent=self,
                                                title="Save changes as",
-                                               filetypes=[('CSV File','.csv'),('Excel file','.xlsx'),('JSON File','.json')],
+                                               filetypes=[('CSV File','.csv'),
+                                                          ('TSV File','.tsv'),
+                                                          ('Excel file','.xlsx'),('JSON File','.json')],
                                                defaultextension=".csv",
                                                confirmoverwrite=True)
         if not newfile:
             self.stop_work()
             return
         newfile = os.path.normpath(newfile)
-        if not newfile.lower().endswith((".csv",".xlsx",".json")):
+        if not newfile.lower().endswith((".csv",".xlsx",".json",".tsv")):
             self.grab_set()
             self.stop_work("Can only save .csv/.xlsx/.json file types")
             return
@@ -606,9 +610,11 @@ class changelog_popup(tk.Toplevel):
                 ws.column_dimensions["F"].width = 60
                 self.wb_.save(newfile)
                 self.try_to_close_wb()
-            elif newfile.lower().endswith(".csv"):
-                with open(newfile,"w",newline="") as fh:
-                    writer = csv_module.writer(fh,dialect=csv_module.excel_tab,lineterminator="\n")
+            elif newfile.lower().endswith((".csv", ".tsv")):
+                with open(newfile,"w",newline="", encoding = "utf-8") as fh:
+                    writer = csv_module.writer(fh,
+                                               dialect = csv_module.excel_tab if newfile.lower().endswith(".tsv") else csv_module.excel,
+                                               lineterminator="\n")
                     writer.writerow(["Date","User","Type","ID/Name/Number","Old Value","New Value"])
                     for rn,row in enumerate(self.C.changelog):
                         writer.writerow(row)
@@ -634,14 +640,14 @@ class changelog_popup(tk.Toplevel):
         self.start_work("Opened save dialog")
         newfile = filedialog.asksaveasfilename(parent=self,
                                                title="Save selected changes as",
-                                               filetypes=[('CSV File','.csv'),('Excel file','.xlsx'),('JSON File','.json')],
+                                               filetypes=[('CSV File','.csv'),('TSV File','.tsv'),('Excel file','.xlsx'),('JSON File','.json')],
                                                defaultextension=".csv",
                                                confirmoverwrite=True)
         if not newfile:
             self.stop_work()
             return
         newfile = os.path.normpath(newfile)
-        if not newfile.lower().endswith((".csv",".xlsx",".json")):
+        if not newfile.lower().endswith((".csv",".xlsx",".json",".tsv")):
             self.grab_set()
             self.stop_work("Can only save .csv/.xlsx/.json file types")
             return
@@ -676,9 +682,11 @@ class changelog_popup(tk.Toplevel):
                 ws.column_dimensions["F"].width = 60
                 self.wb_.save(newfile)
                 self.try_to_close_wb()
-            elif newfile.lower().endswith(".csv"):
-                with open(newfile,"w",newline="") as fh:
-                    writer = csv_module.writer(fh,dialect=csv_module.excel_tab,lineterminator="\n")
+            elif newfile.lower().endswith((".csv", ".tsv")):
+                with open(newfile,"w",newline="", encoding = "utf-8") as fh:
+                    writer = csv_module.writer(fh,
+                                               dialect = csv_module.excel_tab if newfile.lower().endswith(".tsv") else csv_module.excel,
+                                               lineterminator="\n")
                     writer.writerow(["Date","User","Type","ID/Name/Number","Old Value","New Value"])
                     for rn,row in enumerate(islice(self.C.changelog, from_row, to_row)):
                         writer.writerow(row)
@@ -5453,6 +5461,263 @@ class treeview_id_finder(tk.Toplevel):
         
     def cancel(self,event=None):
         self.destroy()
+
+
+class org_chart_popup(tk.Toplevel):
+    def __init__(self,C,width=999,height=800, theme = "dark"):
+        tk.Toplevel.__init__(self,C,width="1",height="1", bg = theme_bg(theme))
+        self.withdraw()
+        self.tk.call("wm","iconphoto",self._w,tk.PhotoImage(format="gif",data=top_left_icon))
+        self.C = C
+        self.theme = theme
+        self.title("Organizational Chart - Click the X button or press escape to go back")
+        self.protocol("WM_DELETE_WINDOW",self.USER_HAS_CLOSED_WINDOW)
+        self.USER_HAS_QUIT = False
+        #self.wm_transient(self.C)
+        self.focus_force()
+        self.grab_set()
+        self.grid_columnconfigure(0,weight=1)
+        self.grid_rowconfigure(0,weight=1)
+        
+        self.org_canvas = tk.Canvas(self,
+                                    bg = theme_bg(theme))
+        self.org_canvas.grid(row = 0,
+                             column = 0,
+                             sticky = "nswe")
+        self.yscroll = scrollbar(self,
+                                  self.org_canvas.yview,
+                                  "vertical",
+                                  self.org_canvas)
+        self.yscroll.grid(row = 0,
+                          column = 1,
+                          sticky = "ns")
+        self.xscroll = scrollbar(self,
+                                  self.org_canvas.xview,
+                                  "horizontal",
+                                  self.org_canvas)
+        self.xscroll.grid(row = 1,
+                          column = 0,
+                          columnspan = 2,
+                          sticky = "ew")
+
+        self.font_size = 12
+        self.box_widths = {7: 60,
+                           8: 85,
+                           9: 115,
+                           10: 150,
+                           11: 190,
+                           12: 250}
+        self.y_box_gaps = {7: 26,
+                           8: 32,
+                           9: 38,
+                           10: 45,
+                           11: 50,
+                           12: 55}
+        self.cn_gaps = {7: 10,
+                           8: 15,
+                           9: 20,
+                           10: 25,
+                           11: 30,
+                           12: 35}
+        self.sets_of_cn_gaps = {7: 16,
+                                   8: 22,
+                                   9: 28,
+                                   10: 35,
+                                   11: 40,
+                                   12: 45}
+        self.txt_gaps = {7: 5,
+                           8: 7,
+                           9: 9,
+                           10: 11,
+                           11: 14,
+                           12: 17}
+        self.levels = defaultdict(list)
+        self.sets_of_children = defaultdict(dict)
+
+        self.draw_chart()
+
+        self.bind("<Escape>",self.cancel)
+        center(self,width,height)
+        self.deiconify()
+        self.wait_window()
+
+    def get_lvls(self, n, lvl = 2):
+        for c in n.cn[self.C.pc]:
+            self.levels[lvl].append(c.k)
+            self.get_lvls(c, lvl + 1)
+
+    def get_sets_of_children(self, n, lvl = 2):
+        self.sets_of_children[lvl][n.k] = {c.k: i for i, c in enumerate(n.cn[self.C.pc])}
+        for c in n.cn[self.C.pc]:
+            self.get_lvls(c, lvl + 1)
+
+    def draw_chart(self, zoom = None):
+        if zoom == -1:
+            if not self.font_size == 7:
+                self.font_size -= 1
+        elif zoom == 1:
+            if not self.font_size == 12:
+                self.font_size += 1
+                
+        text_dct = defaultdict(dict)
+        box_dct = defaultdict(dict)
+        line_dct = defaultdict(list)
+        lvls_first_boxes_x_dct = {}
+        self.levels = defaultdict(list)
+        self.sets_of_children = defaultdict(dict)
+        pc = int(self.C.pc)
+        y = 10
+        x = 0 #very first box goes at zero
+        for n in self.C.topnodes():
+            self.levels[1].append(n.k)
+            self.get_lvls(n)
+            self.get_sets_of_children(n)
+
+        if not self.levels or not self.levels[1]:
+            self.org_canvas.configure(scrollregion = self.org_canvas.bbox("all"))
+            return
+
+        sorted_levels_keys = sorted(self.levels)
+        
+        # add first box here - it will be the name of the hierarchy and the name of the chosen detail column
+        hier_name = self.C.headers[self.C.pc].name
+        text_dct[0][" " + hier_name.lower()] = []
+        text_dct[0][" " + hier_name.lower()].append(self.org_canvas.create_text(x + int(self.box_widths[self.font_size] / 2), y + 5,
+                                                                        text = hier_name,
+                                                                        fill = theme_treeview_fg(self.theme),
+                                                                        font = ("Calibri", self.font_size, "bold"),
+                                                                        anchor = "n",
+                                                                        tags = "t",
+                                                                      width = self.box_widths[self.font_size] - 10))
+        txt_h1 = self.org_canvas.bbox(text_dct[0][" " + hier_name.lower()][0])
+        txt_h1 = txt_h1[3] - txt_h1[1]
+
+        # do 2nd text box, measure then use combined heights to calc y2 of rect
+        text_dct[0][" " + hier_name.lower()].append(self.org_canvas.create_text(x + int(self.box_widths[self.font_size] / 2), y + 5 + txt_h1 + self.txt_gaps[self.font_size],
+                                                                        text = self.C.headers[self.C.column_index1].name,
+                                                                        fill = theme_treeview_fg(self.theme),
+                                                                        font = ("Calibri", self.font_size, "normal"),
+                                                                        anchor = "n",
+                                                                        tags = "t",
+                                                                      width = self.box_widths[self.font_size] - 10))
+        txt_h2 = self.org_canvas.bbox(text_dct[0][" " + hier_name.lower()][1])
+        txt_h2 = txt_h2[3] - txt_h2[1]
+        
+        box_dct[0][" " + hier_name.lower()] = self.round_rectangle(x,
+                                                         y,
+                                                         x + self.box_widths[self.font_size],
+                                                         y + 15 + txt_h1 + self.txt_gaps[self.font_size] + txt_h2,
+                                                         fill = theme_treeview_bg(self.theme),
+                                                         outline = theme_treeview_fg(self.theme),
+                                                         width = 1 if self.font_size == 7 else 2)
+        y = y + 15 + txt_h1 + self.txt_gaps[self.font_size] + txt_h2 + self.y_box_gaps[self.font_size]
+        distances = defaultdict(dict)
+        for lvl in reversed(sorted_levels_keys):
+            # if there's more than one child
+            if len(self.levels[lvl]) > 1:
+                for c1, c2 in zip(islice(self.levels[lvl], 0, None), islice(self.levels[lvl], 1, None)):
+                    # the distance between c1 and c2 is related to how many children c1 has and how many c2 has
+                    # if they're not under the same parent
+                    if next((k for k, v in self.sets_of_children[lvl].items() if c1 in v and c2 in v), None) is None:
+                        if self.sets_of_children[lvl]:
+                            c1_par = self.C.nodes[c1].ps[self.C.pc]
+                            if c1_par:
+                                c1_par = c1_par.k
+                            c2_par = self.C.nodes[c2].ps[self.C.pc]
+                            if c2_par:
+                                c2_par = c2_par.k
+                            total_boxes = len(self.sets_of_children[lvl][c1_par]) + len(self.sets_of_children[lvl][c2_par])
+                            if total_boxes > 1:
+                                distances[lvl][(c1, c2)] = int(((total_boxes * self.box_widths[self.font_size]) + ((total_boxes - 2) * self.cn_gaps[self.font_size]) + self.sets_of_cn_gaps[self.font_size]) / 2)
+                            else:
+                                distances[lvl][(c1, c2)] = self.box_widths[self.font_size] + self.sets_of_cn_gaps[self.font_size]
+                        else:
+                            distances[lvl][(c1, c2)] = self.box_widths[self.font_size] + self.sets_of_cn_gaps[self.font_size]
+                    # if they're under the same parent
+                    else:
+                        if self.sets_of_children[lvl]:
+                            c1_par = self.C.nodes[c1].ps[self.C.pc]
+                            if c1_par:
+                                c1_par = c1_par.k
+                            c2_par = self.C.nodes[c2].ps[self.C.pc]
+                            if c2_par:
+                                c2_par = c2_par.k
+                            total_boxes = len(self.sets_of_children[lvl][c1_par]) + len(self.sets_of_children[lvl][c2_par])
+                            if total_boxes > 1:
+                                distances[lvl][(c1, c2)] = int(((total_boxes * self.box_widths[self.font_size]) + ((total_boxes - 1) * self.cn_gaps[self.font_size])) / 2)
+                            else:
+                                distances[lvl][(c1, c2)] = self.box_widths[self.font_size] + self.cn_gaps[self.font_size]
+                        else:
+                            distances[lvl][(c1, c2)] = self.box_widths[self.font_size] + self.cn_gaps[self.font_size]
+        x = 0 - int(sum(distances[sorted_levels_keys[0]].values()) / 2)
+        last_chld = None
+        max_lvl_y = 0
+        for lvl_num, lvl in enumerate(sorted_levels_keys):
+            if lvl_num:
+                first_with_cn = next((k for k, v in self.sets_of_children[lvl].items() if v), None)
+                if first_with_cn is None:
+                    x = x
+                else:
+                    x = self.org_canvas.bbox(box_dct[lvl - 1][first_with_cn])[0] - int(((len(self.sets_of_children[lvl][first_with_cn]) * self.box_widths[self.font_size]) / 2) + (len(self.sets_of_children[lvl][first_with_cn]) - 1) * self.cn_gaps[self.font_size])
+                y = max_lvl_y + self.y_box_gaps[self.font_size]
+            
+            for chld_num, chld in enumerate(self.levels[lvl]):
+                if last_chld is not None:
+                    x = x + distances[lvl][(last_chld, chld)]
+                text_dct[lvl][chld] = []
+                text_dct[lvl][chld].append(self.org_canvas.create_text(x + int(self.box_widths[self.font_size] / 2), y + 5,
+                                                                    text = self.C.sheet[self.C.rns[chld]][self.C.tv_label_col],
+                                                                    fill = theme_treeview_fg(self.theme),
+                                                                    font = ("Calibri", self.font_size, "bold"),
+                                                                    anchor = "n",
+                                                                       tags = "t",
+                                                                  width = self.box_widths[self.font_size] - 10))
+                txt_h1 = self.org_canvas.bbox(text_dct[lvl][chld][0])
+                txt_h1 = txt_h1[3] - txt_h1[1]
+
+                # do 2nd text box, measure then use combined heights to calc y2 of rect
+                text_dct[lvl][chld].append(self.org_canvas.create_text(x + int(self.box_widths[self.font_size] / 2), y + 5 + txt_h1 + self.txt_gaps[self.font_size],
+                                                                    text = self.C.sheet[self.C.rns[chld]][self.C.column_index1],
+                                                                    fill = theme_treeview_fg(self.theme),
+                                                                    font = ("Calibri", self.font_size, "normal"),
+                                                                    anchor = "n",
+                                                                       tags = "t",
+                                                                  width = self.box_widths[self.font_size] - 10))
+                txt_h2 = self.org_canvas.bbox(text_dct[lvl][chld][1])
+                txt_h2 = txt_h2[3] - txt_h2[1]
+
+                box_y2 = y + 15 + txt_h1 + self.txt_gaps[self.font_size] + txt_h2
+                if box_y2 >= max_lvl_y:
+                    max_lvl_y = box_y2
+                box_dct[lvl][chld] = self.round_rectangle(x,
+                                                         y,
+                                                         x + self.box_widths[self.font_size],
+                                                         box_y2,
+                                                         fill = theme_treeview_bg(self.theme),
+                                                         outline = theme_treeview_fg(self.theme),
+                                                         width = 1 if self.font_size == 7 else 2)
+                last_chld = chld
+
+            last_chld = None
+            
+
+
+
+        self.org_canvas.configure(scrollregion = self.org_canvas.bbox("all"))
+        self.org_canvas.tag_raise("t")
+
+                
+    def round_rectangle(self, x1, y1, x2, y2, **kwargs):
+        r = 30
+        points = (x1+r, y1, x1+r, y1, x2-r, y1, x2-r, y1, x2, y1, x2, y1+r, x2, y1+r, x2, y2-r, x2, y2-r, x2, y2, x2-r, y2, x2-r, y2, x1+r, y2, x1+r, y2, x1, y2, x1, y2-r, x1, y2-r, x1, y1+r, x1, y1+r, x1, y1)
+        return self.org_canvas.create_polygon(points, **kwargs, smooth = True)  
+
+    def USER_HAS_CLOSED_WINDOW(self, event = None):
+        self.USER_HAS_QUIT = True
+        self.destroy()
+
+    def cancel(self, event = None):
+        self.USER_HAS_CLOSED_WINDOW()
 
 
 class ss_settings_chooser(tk.Toplevel):

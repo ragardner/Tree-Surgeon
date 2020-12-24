@@ -24,14 +24,88 @@ from openpyxl.styles.borders import Border, Side
 from openpyxl.styles import PatternFill
 from openpyxl.styles import Alignment
 from platform import system as get_os
-from fastnumbers import isint, isintlike, isfloat, isreal
 
-software_version_number = "2.6426"
+software_version_number = "2.6427"
 software_version_full = "Software version: " + software_version_number
 app_title = " Tree Surgeon©"
 contact_email = "ragardner@protonmail.com"
 website1 = "github.com/ragardner"
 website2 = "ragardner.github.io/Tree-Surgeon"
+
+isrealre = re.compile(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?$')
+isfloatre = re.compile(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?$')
+isintre = re.compile(r'[-+]?\d+$')
+isintlikere = re.compile(r'[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?$')
+
+def isreal(inp, str_only=False, num_only=False,
+               allow_nan=False, allow_inf=False):
+    if str_only and type(inp) != str:
+        return False
+    if num_only and type(inp) not in (float, int):
+        return False
+    try:
+        x = bool(isrealre.match(inp))
+    except TypeError:
+        return type(inp) in (float, int)
+    else:
+        if x:
+            return True
+        elif allow_inf and inp.lower().strip().lstrip('-+') in ('inf', 'infinity'):
+            return True
+        elif allow_nan and inp.lower().strip().lstrip('-+') == 'nan':
+            return True
+        else:
+            return False
+
+def isfloat(inp, str_only=False, num_only=False,
+               allow_nan=False, allow_inf=False):
+    if str_only and type(inp) != str:
+        return False
+    if num_only and type(inp) != float:
+        return False
+    try:
+        x = bool(isfloatre.match(inp))
+    except TypeError:
+        return type(inp) == float
+    else:
+        if x:
+            return True
+        elif allow_inf and inp.lower().strip().lstrip('-+') in ('inf', 'infinity'):
+            return True
+        elif allow_nan and inp.lower().strip().lstrip('-+') == 'nan':
+            return True
+        else:
+            return False
+
+def isint(inp, str_only=False, num_only=False):
+    if str_only and type(inp) != str:
+        return False
+    if num_only and type(inp) != int:
+        return False
+    try:
+        return bool(isintre.match(inp))
+    except TypeError:
+        return False
+
+def isintlike(inp, str_only=False, num_only=False):
+    if str_only and type(inp) != str:
+        return False
+    if num_only and type(inp) not in (int, float):
+        return False
+    try:
+        if isintre.match(inp):
+            return True
+        elif isintlikere.match(inp):
+            return float(inp).is_integer()
+        else:
+            return False
+    except TypeError:
+        if type(inp) == float:
+            return inp.is_integer()
+        elif type(inp) == int:
+            return True
+        else:
+            return False
 
 def theme_button_fg(theme = "dark blue"):
     return "#2b2b2b"

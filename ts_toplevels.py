@@ -27,7 +27,6 @@ from openpyxl.styles.borders import Border, Side
 from openpyxl.styles import PatternFill
 from openpyxl.styles import Alignment
 from platform import system as get_os
-from fastnumbers import isint, isintlike, isfloat, isreal
 
 
 class export_flattened_popup(tk.Toplevel):

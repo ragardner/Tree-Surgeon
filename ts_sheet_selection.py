@@ -30,7 +30,6 @@ from openpyxl.styles.borders import Border, Side
 from openpyxl.styles import PatternFill
 from openpyxl.styles import Alignment
 import builtins
-from fastnumbers import isint, isintlike, isfloat, isreal
 
 
 class wb_sh_sel(tk.Frame): 

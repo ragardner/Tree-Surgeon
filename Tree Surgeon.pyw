@@ -6,7 +6,6 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.styles.borders import Border, Side
 from openpyxl.styles import PatternFill
 from openpyxl.styles import Alignment
-from fastnumbers import isint, isintlike, isfloat, isreal
 
 from ts_column_selection import *
 from ts_compare import *

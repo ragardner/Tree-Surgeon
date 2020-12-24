@@ -1,4 +1,4 @@
-# [Tree-Surgeon](https://ragardner.github.io/Tree-Surgeon) ![python](https://img.shields.io/badge/windows-10-blue) ![python](https://img.shields.io/badge/python-3.6+-blue) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/ragardner/Tree-Surgeon) [![GitHub Release Date](https://img.shields.io/github/release-date-pre/ragardner/Tree-Surgeon.svg)](https://github.com/ragardner/Tree-Surgeon/releases) ![GitHub All Releases](https://img.shields.io/github/downloads/ragardner/Tree-Surgeon/total)
+# [Tree-Surgeon](https://ragardner.github.io/Tree-Surgeon) ![python](https://img.shields.io/badge/windows-10-blue) ![python](https://img.shields.io/badge/python-3.9+-blue) ![GitHub release (latest by date)](https://img.shields.io/github/v/release/ragardner/Tree-Surgeon) [![GitHub Release Date](https://img.shields.io/github/release-date-pre/ragardner/Tree-Surgeon.svg)](https://github.com/ragardner/Tree-Surgeon/releases) ![GitHub All Releases](https://img.shields.io/github/downloads/ragardner/Tree-Surgeon/total)
 
 ## Use Cases and Summary
  - Allows users to work more intuitively with hierarchies
@@ -30,8 +30,8 @@ ___
 
 | Program Type           | Download Link                                                                          |
 |:-----------------------| --------------------------------------------------------------------------------------:|
-| Portable Folder .exe   | [https://github.com/ragardner/Tree-Surgeon/releases/download/2.6427/Tree.Surgeon.zip](https://github.com/ragardner/Tree-Surgeon/releases/download/2.6427/Tree.Surgeon.zip)   |
-| Python Source          | [https://github.com/ragardner/Tree-Surgeon/archive/2.6427.zip](https://github.com/ragardner/Tree-Surgeon/archive/2.6427.zip)                          |
+| Portable Folder .exe   | [https://github.com/ragardner/Tree-Surgeon/releases/download/2.6426/Tree.Surgeon.zip](https://github.com/ragardner/Tree-Surgeon/releases/download/2.6426/Tree.Surgeon.zip)   |
+| Python Source          | [https://github.com/ragardner/Tree-Surgeon/archive/2.6426.zip](https://github.com/ragardner/Tree-Surgeon/archive/2.6426.zip)                          |
 
 
 Contact ragardner@protonmail.com for more information
